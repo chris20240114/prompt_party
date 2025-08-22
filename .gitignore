@@ -1,0 +1,28 @@
+# Python-specific ignores
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+.coverage
+.tox/
+.pytest_cache/
+venv/
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# macOS-specific ignores
+.DS_Store
+.Trashes/
+._*
+.Spotlight-V100/
+
+# IDE-specific ignores (example for VS Code and PyCharm)
+.vscode/
+.idea/
+*.iml
+
+# Common build/distribution files
+build/
+dist/
