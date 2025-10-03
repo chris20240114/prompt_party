@@ -26,3 +26,4 @@ pip-delete-this-directory.txt
 # Common build/distribution files
 build/
 dist/
+server/login.py
