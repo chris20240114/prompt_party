@@ -1,6 +1,6 @@
 from neo4j import GraphDatabase
 
-from imports import User, Post
+from imports import User, Post, Email
 
 import dotenv
 import os
@@ -24,10 +24,11 @@ def add_user(user: User) -> None:
     user (User): user to be added """
 
     summary = driver.execute_query( 
-        """ CREATE (User {userid: $userid, username: $username, email: $email})""", 
+        """ CREATE (n:User {userid: $userid, username: $username, email: $email, phone: $phone})""", 
         userid=user.userid, 
         username=user.username, 
         email=user.email.email,
+        phone=user.phone,
         database_="neo4j",
     ).summary
 
@@ -35,6 +36,37 @@ def add_user(user: User) -> None:
         nodes_created=summary.counters.nodes_created,
         time=summary.result_available_after
     ))
+
+def delete_user(user: User) -> None:
+    """ Removes users from the graph database.
+    
+    Args: 
+    user (User): user to be removed """
+
+    summary = driver.execute_query( 
+        """ MATCH (u: User)
+        WHERE u.userid = $userid
+        DELETE u""", 
+        userid=user.userid, 
+        database_="neo4j",
+    ).summary
+
+    print("Deleted 1 node in {time} ms.".format(
+        nodes_created=summary.counters.nodes_created,
+        time=summary.result_available_after
+    ))
+
+def find_user(user: User) -> bool:
+    """ Finds a user in the graph database"""
+
+    records, summary, keys = driver.execute_query(
+        """ MATCH (u: User {userid: $userid})
+        RETURN u
+        """,
+        userid = user.userid
+    )
+
+    return len(records) > 0
 
 def add_post(post: Post) -> None:
     """ Adds posts to the graph database.
@@ -56,8 +88,8 @@ def add_post(post: Post) -> None:
         database_="neo4j",
     ).summary
 
-    print("Created {nodes_created} nodes in {time} ms.".format(
-        nodes_created=summary.counters.nodes_created,
+    print("Added post {postid} nodes in {time} ms.".format(
+        userid = post.postid,
         time=summary.result_available_after
     ))
 
@@ -86,3 +118,25 @@ def add_like(user: User, post: Post) -> None:
         nodes_created=summary.counters.nodes_created,
         time=summary.result_available_after
     ))
+
+def add_reply(parent_post: Post, reply: Post):
+    """ Adds reply relationships to the graph database"""
+    summary = driver.execute_query( 
+        """ MATCH (p1:Post)
+            WHERE p1.postid = $postid1
+            MATCH (p2:Post)
+            WHERE p2.postid = $postid2
+            CREATE (p1)-[:REPLIES]->(p2)
+            CREATE (p2)-[:HASREPLY]->(p1)
+        """, 
+        postid1= reply.postid,
+        postid2 = parent_post.postid,
+        database_="neo4j",
+    ).summary
+
+def main():
+    u2 = User("1", "user1", Email("email1@email.com"), "124")
+    delete_user(u2)
+
+if __name__ == "__main__":
+    main()
