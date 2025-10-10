@@ -1,6 +1,7 @@
 from neo4j import GraphDatabase
 
 from imports import User, Post, Email
+from typing import List
 
 import dotenv
 import os
@@ -134,8 +135,24 @@ def add_reply(parent_post: Post, reply: Post):
         database_="neo4j",
     ).summary
 
+# TO DO for Chris
+
+def add_follow(user1: User, user2: User):
+    """ Makes User 1 follow User 2"""
+    return
+
+def find_friends(user: User) -> List[str]:
+    """ Returns a list of the userids of the friends of user"""
+    return
+
+def find_posts(user: User) -> List[str]:
+    """ Returns a list of the postids of the user's' posts"""
+    return
+
+
+
 def main():
-    u2 = User("1", "user1", Email("email1@email.com"), "124")
+    u2 = User("1", "user1", "email1@email.com", "124")
     delete_user(u2)
 
 if __name__ == "__main__":
