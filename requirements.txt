@@ -2,6 +2,7 @@
 
 # Core web framework
 fastapi==0.112.2
+uvicorn  # ← ADD THIS (ASGI server to run FastAPI)
 
 # Data validation and serialization
 pydantic==2.11.7
@@ -12,6 +13,9 @@ strawberry-graphql[fastapi]
 
 # Database
 supabase
+
+# Environment variables
+python-dotenv  # ← ADD THIS (to load .env files)
 
 # Data science and numerical computing
 numpy>=2.0.0

@@ -1,0 +1,75 @@
+name: prompt-party-final 
+
+channels:
+  - defaults
+  - conda-forge
+
+dependencies:
+  # Core Conda packages
+  - python=3.11 # It's good practice to pin the Python version
+  - pip
+
+  # Pip-installed packages
+  - pip:
+      # Core web framework
+      - fastapi==0.112.2
+
+      # Data validation and serialization
+      - pydantic==2.11.7
+      - pydantic-core==2.33.2
+
+      # GraphQL
+      - strawberry-graphql[fastapi]
+
+      # Database
+      - supabase
+
+      # Data science and numerical computing
+      - numpy>=2.0.0
+      - pandas>=2.0.0
+      - torch>=2.0.0
+
+      # Utilities
+      - python-dateutil==2.9.0
+      - pytz==2025.2
+      - typing-extensions>=4.12.2
+      - typing-inspection==0.4.0
+
+      # HTTP and networking
+      - anyio==4.7.0
+      - idna==3.7
+      - sniffio==1.3.0
+
+      # File handling and metadata
+      - filelock==3.17.0
+      - fsspec==2025.7.0
+      - importlib-metadata==8.5.0
+      - zipp==3.21.0
+
+      # Template engine
+      - jinja2==3.1.6
+      - markupsafe==3.0.2
+
+      # Mathematical and scientific computing
+      - bottleneck==1.4.2
+      - mpmath==1.3.0
+      - networkx==3.4.2
+      - numexpr==2.11.0
+      - sympy==1.13.3
+
+      # Observability
+      - opentelemetry-api==1.30.0
+
+      # Deprecated package handling
+      - deprecated==1.2.13
+
+      # Type annotations
+      - annotated-types==0.6.0
+
+      # Package management
+      - setuptools==72.1.0
+      - wheel==0.45.1
+
+      # Compatibility
+      - six==1.17.0
+      - wrapt==1.17.0
