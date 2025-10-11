@@ -13,7 +13,7 @@ class User(BaseModel):
 class Post(BaseModel):
     postid: str
     content: str
-    author = User
+    author : User
     date: datetime
     edited: bool
     num_likes: int

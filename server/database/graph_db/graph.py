@@ -1,6 +1,6 @@
 from neo4j import GraphDatabase
 
-from imports import User, Post, Email
+from imports import User, Post
 from typing import List
 
 import dotenv
@@ -28,7 +28,7 @@ def add_user(user: User) -> None:
         """ CREATE (n:User {userid: $userid, username: $username, email: $email, phone: $phone})""", 
         userid=user.userid, 
         username=user.username, 
-        email=user.email.email,
+        email=user.email,
         phone=user.phone,
         database_="neo4j",
     ).summary
@@ -84,13 +84,13 @@ def add_post(post: Post) -> None:
         postid=post.postid,
         content=post.content, 
         author=post.author.userid, 
-        date=post.date.str,
+        date=post.date.isoformat(),
         edited=post.edited,
         database_="neo4j",
     ).summary
 
     print("Added post {postid} nodes in {time} ms.".format(
-        userid = post.postid,
+        postid = post.postid,
         time=summary.result_available_after
     ))
 
@@ -139,15 +139,68 @@ def add_reply(parent_post: Post, reply: Post):
 
 def add_follow(user1: User, user2: User):
     """ Makes User 1 follow User 2"""
-    return
+    summary = driver.execute_query(
+        """
+            MATCH (a:User {userid: $u1}), (b:User {userid: $u2})
+            WHERE a <> b
+            MERGE (a)-[r:FOLLOWS]->(b)
+            ON CREATE SET r.since = datetime()
+            RETURN r
+        """,
+        u1=user1.userid,
+        u2=user2.userid,
+        database_="neo4j",
+    ).summary
+
+    # Cypher query explanation
+    """
+            #// Find both user nodes in the graph by their 'userid' properties
+            MATCH (a:User {userid: $u1}), (b:User {userid: $u2})
+
+            // 'WHERE a <> b' prevents a user from following themselves
+            WHERE a <> b
+
+            // 'MERGE' creates the relationship if it doesn't exist yet.
+            // If it already exists, it does nothing (no duplicates).
+            MERGE (a)-[r:FOLLOWS]->(b)
+
+            // 'ON CREATE SET' runs only if a new relationship was created.
+            // Here we store a timestamp showing when the follow started.
+            ON CREATE SET r.since = datetime()
+
+            // Return the relationship (optional — mainly for debugging)
+            RETURN r
+    """
+    
+    print(f"add_follow: relationships_created={summary.counters.relationships_created}")
+    return summary.counters.relationships_created
 
 def find_friends(user: User) -> List[str]:
     """ Returns a list of the userids of the friends of user"""
-    return
+    records, _, _ = driver.execute_query(
+        """
+            MATCH (me:User {userid: $me})
+            MATCH (me)-[:FOLLOWS]->(u:User)-[:FOLLOWS]->(me)
+            RETURN u.userid AS userid
+            ORDER BY userid 
+        """,
+        me=user.userid,
+        database_="neo4j",
+    )
+    return [r["userid"] for r in records]
 
 def find_posts(user: User) -> List[str]:
     """ Returns a list of the postids of the user's' posts"""
-    return
+    records, _, _ = driver.execute_query(
+        """
+            MATCH (u:User {userid: $userid})-[:POSTED]->(p:Post)
+            RETURN p.postid AS postid
+            ORDER BY p.date DESC
+        """,
+        userid=user.userid,
+        database_="neo4j",
+    )
+    return [r["postid"] for r in records]
 
 
 
@@ -157,3 +210,25 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+'''
+<------ Cypher Cheat Sheet ------>
+
+Cypher Command	                    Description
+------------------------------------------------------------------------
+CREATE (n:Label {prop: value})	  |  Make a new node
+MATCH (n:Label)	                  |  Find existing nodes
+WHERE n.prop = value	          |  Filter results
+DELETE n	                      |  Delete nodes
+DETACH DELETE n	                  |  Delete node + relationships
+MERGE (n:Label {prop: value})	  |  “Create if not exists”
+(a)-[:REL]->(b)	                  |  Relationship from a → b
+(a)<-[:REL]-(b)	                  |  Relationship from b → a
+RETURN n.prop	                  |  Return properties
+SET n.prop = new_value	          |  Update
+REMOVE n.prop	                  |  Remove a property
+ON CREATE SET	                  |  Only set property when created
+ON MATCH SET	                  |  Only set property when matched
+
+'''
