@@ -16,5 +16,6 @@ class Post(BaseModel):
     author = User
     date: datetime
     edited: bool
+    num_likes: int
 
     
