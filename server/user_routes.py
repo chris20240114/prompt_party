@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
-from supabase_service import create_user, get_user_email, get_user_username, UserCreate
+from server.database.relational_db.supabase_service import create_user, get_user_email, get_user_username, UserCreate
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
