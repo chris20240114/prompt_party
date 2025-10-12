@@ -1,69 +1,68 @@
-# This file may be used to create an environment using:
-# $ conda create --name <env> --file <this file>
-# platform: osx-arm64
-# created-by: conda 24.11.3
-annotated-types=0.6.0=py311hca03da5_0
-anyio=4.7.0=py311hca03da5_0
-blas=1.0=openblas
-bottleneck=1.4.2=py311hb9f6ed7_0
-bzip2=1.0.8=h80987f9_6
-ca-certificates=2025.7.15=hca03da5_0
-deprecated=1.2.13=py311hca03da5_0
-expat=2.7.1=h313beb8_0
-fastapi=0.112.2=py311hca03da5_0
-filelock=3.17.0=py311hca03da5_0
-fsspec=2025.7.0=py311hd096484_0
-gmp=6.3.0=h313beb8_0
-gmpy2=2.2.1=py311h5c1b81f_0
-idna=3.7=py311hca03da5_0
-importlib-metadata=8.5.0=py311hca03da5_0
-jinja2=3.1.6=py311hca03da5_0
-libabseil=20250127.0=cxx17_h313beb8_0
-libcxx=19.1.7=hb09ecce_3
-libffi=3.4.4=hca03da5_1
-libgfortran=5.0.0=11_3_0_hca03da5_28
-libgfortran5=11.3.0=h009349e_28
-libopenblas=0.3.29=hea593b9_0
-libprotobuf=5.29.3=h14f15fd_1
-libtorch=2.6.0=cpu_openblas_h5ebe3f5_6
-libuv=1.48.0=h80987f9_0
-llvm-openmp=19.1.7=h3b2fb71_2
-markupsafe=3.0.2=py311h80987f9_0
-mpc=1.3.1=h80987f9_0
-mpfr=4.2.1=h80987f9_0
-mpmath=1.3.0=py311hca03da5_0
-ncurses=6.5=hee39554_0
-networkx=3.4.2=py311hca03da5_0
-nomkl=3.0=0
-numexpr=2.11.0=py311h8c72970_1
-numpy=2.3.1=py311hc3f7a0e_0
-numpy-base=2.3.1=py311he1c501e_0
-openssl=3.0.17=h4ee41c1_0
-opentelemetry-api=1.30.0=py311hca03da5_0
-pandas=2.3.1=py311h43d6402_0
-pip=25.1=pyhc872135_2
-pydantic=2.11.7=py311hca03da5_0
-pydantic-core=2.33.2=py311h5e3a92f_0
-python=3.11.13=h19e8193_0
-python-dateutil=2.9.0post0=py311hca03da5_2
-python-tzdata=2025.2=pyhd3eb1b0_0
-pytorch=2.6.0=cpu_openblas_py311h9475015_6
-pytz=2025.2=py311hca03da5_0
-readline=8.3=h0b18652_0
-setuptools=72.1.0=py311hca03da5_0
-six=1.17.0=py311hca03da5_0
-sleef=3.5.1=h80987f9_2
-sniffio=1.3.0=py311hca03da5_0
-sqlite=3.50.2=h79febb2_1
-starlette=0.38.2=py311hca03da5_0
-sympy=1.13.3=py311hca03da5_1
-tk=8.6.15=hcd8a7d5_0
-typing-extensions=4.12.2=py311hca03da5_0
-typing-inspection=0.4.0=py311hca03da5_0
-typing_extensions=4.12.2=py311hca03da5_0
-tzdata=2025b=h04d1e81_0
-wheel=0.45.1=py311hca03da5_0
-wrapt=1.17.0=py311h80987f9_0
-xz=5.6.4=h80987f9_1
-zipp=3.21.0=py311hca03da5_0
-zlib=1.2.13=h18a0788_1
+# Python package requirements for pip
+
+# Core web framework
+fastapi==0.112.2
+uvicorn  # ← ADD THIS (ASGI server to run FastAPI)
+
+# Data validation and serialization
+pydantic==2.11.7
+pydantic-core==2.33.2
+
+# GraphQL
+strawberry-graphql[fastapi]
+
+# Database
+supabase
+
+# Environment variables
+python-dotenv  # ← ADD THIS (to load .env files)
+
+# Data science and numerical computing
+numpy>=2.0.0
+pandas>=2.0.0
+torch>=2.0.0
+
+# Utilities
+python-dateutil==2.9.0
+pytz==2025.2
+typing-extensions>=4.12.2
+typing-inspection==0.4.0
+
+# HTTP and networking
+anyio==4.7.0
+idna==3.7
+sniffio==1.3.0
+
+# File handling and metadata
+filelock==3.17.0
+fsspec==2025.7.0
+importlib-metadata==8.5.0
+zipp==3.21.0
+
+# Template engine
+jinja2==3.1.6
+markupsafe==3.0.2
+
+# Mathematical and scientific computing
+bottleneck==1.4.2
+mpmath==1.3.0
+networkx==3.4.2
+numexpr==2.11.0
+sympy==1.13.3
+
+# Observability
+opentelemetry-api==1.30.0
+
+# Deprecated package handling
+deprecated==1.2.13
+
+# Type annotations
+annotated-types==0.6.0
+
+# Package management
+setuptools==72.1.0
+wheel==0.45.1
+
+# Compatibility
+six==1.17.0
+wrapt==1.17.0
