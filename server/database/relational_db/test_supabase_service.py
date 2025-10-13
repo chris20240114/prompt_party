@@ -9,10 +9,6 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-# Set fake Supabase credentials so the module import doesn't fail
-os.environ.setdefault("SUPABASE_URL", "https://fake.supabase.co")
-os.environ.setdefault("SUPABASE_KEY", "fake-key")
-
 # Patch create_client before import to inject a fake supabase client
 patcher_client = patch("supabase.create_client")
 mock_client_ctor = patcher_client.start()
