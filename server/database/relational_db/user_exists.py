@@ -1,10 +1,21 @@
-from supabase import create_client
+import os
+from pydantic import BaseModel, EmailStr
+from supabase import create_client, Client
 from typing import Optional
+from datetime import datetime
+from dotenv import load_dotenv
 
-supabase_url = "https://bouinpqatkdhomrhlpfz.supabase.co"
-supabase_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvdWlucHFhdGtkaG9tcmhscGZ6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1ODk0MjU5NSwiZXhwIjoyMDc0NTE4NTk1fQ.2uffpCdXwCI8YHlzuuWPhKknBM7LT4yyurFyx0JgdRA"
 
-supabase = create_client(supabase_url, supabase_key)
+load_dotenv()
+
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+
+assert SUPABASE_URL is not None, "SUPABASE_URL missing"
+assert SUPABASE_KEY is not None, "SUPABASE_KEY missing"
+
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 """
 def user_exists(uid: Optional[str], email: Optional[str], phone: Optional[str]) -> bool:
