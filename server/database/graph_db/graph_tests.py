@@ -33,7 +33,7 @@ mock_ctor.side_effect = [ctx, module_driver]
 from server.database.graph_db.graph import (
     add_user, delete_user, find_user,
     add_post, add_like, add_reply,
-    add_follow, find_friends, find_posts, find_replies
+    add_follow, find_friends, find_posts
 )
 from imports import User, Post
 
@@ -107,11 +107,6 @@ class GraphOpsTests(unittest.TestCase):
         module_driver.execute_query.return_value = ([{"postid": "p3"}, {"postid": "p1"}], make_summary(), ["postid"])
         me = User(userid="me", username="m", email="m@x.com", phone="1")
         self.assertEqual(find_posts(me), ["p3", "p1"])
-
-    def test_find_replies(self):
-        module_driver.execute_query.return_value = ([{"postid": "r1"}, {"postid": "r2"}], make_summary(), ["postid"])
-        parent = Post(postid="p1", content="none", author=User(userid="me", username="m", email="m@x.com", phone="1"), date="2025-01-01", edited=False, num_likes=0,)
-        self.assertEqual(find_replies(parent), ["r1", "r2"])
 
 def tearDownModule():
     patcher_env.stop()
