@@ -34,7 +34,9 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
@@ -44,7 +46,6 @@
       "eas": {
         "projectId": "6ee77b24-f86d-496d-a4fd-f55f2b7e98d4"
       }
-    },
-    "owner": "samikh-expo"
+    }
   }
 }
