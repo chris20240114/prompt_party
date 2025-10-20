@@ -1,18 +1,23 @@
 import strawberry
 
 from typing import Optional
-from pydantic import EmailStr
 from datetime import datetime
-
-from classes import User, Post
 
 @strawberry.type
 class UserType:
     userid: str
     username: str
-    email: EmailStr
+    email: str
     phone: Optional[str] = None
     profile_picture: Optional[str] = None
+
+@strawberry.input
+class UserInput:
+  username: str
+  email: str
+  password: str
+  profile_picture: Optional[str] = None
+  bio: Optional[str] = None
 
 @strawberry.type
 class PostType:
@@ -26,20 +31,4 @@ class PostType:
 @strawberry.input
 class PostInput:
     content: str
-    author_id: str
-
-
-#Converters
-
-def convert_User_to_UserType(user: User) -> UserType:
-    return UserType(user.userid, user.username, user.email, user.phone, user.profile_picture)
-
-def convert_Post_to_PostType(post: Post) -> PostType:
-    return PostType(
-        postid=post.postid,
-        content=post.content, 
-        author_id=post.author_id,
-        date=post.date,
-        edited=post.edited,
-        num_likes=post.num_likes
-    )
+    authorid: str

@@ -1,4 +1,4 @@
-# Prompt Party API Server
+# PromptParty API Server
 
 A FastAPI-based backend server for PromptParty, providing both REST and GraphQL APIs for user management and post functionality.
 
@@ -33,7 +33,7 @@ Once the server is running, access the interactive documentation:
 - **ReDoc**: `http://localhost:8000/redoc`
 - **GraphQL Playground**: `http://localhost:8000/graphql`
 
-##  API Endpoints
+## API Endpoints
 
 ### REST API Endpoints
 
