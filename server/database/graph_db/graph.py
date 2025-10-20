@@ -1,6 +1,6 @@
 from neo4j import GraphDatabase
 
-from imports import User, Post
+from .imports import User, Post
 from typing import List
 
 import dotenv
@@ -18,13 +18,13 @@ with GraphDatabase.driver(URI, auth=AUTH) as driver:
 
 driver = GraphDatabase.driver(URI, auth=AUTH)
 
-def add_user(user: User) -> None:
+async def add_user(user: User) -> None:
     """ Adds users to the graph database.
     
     Args: 
     user (User): user to be added """
 
-    summary = driver.execute_query( 
+    summary = await driver.execute_query( 
         """ CREATE (n:User {userid: $userid, username: $username, email: $email, phone: $phone})""", 
         userid=user.userid, 
         username=user.username, 
@@ -38,13 +38,13 @@ def add_user(user: User) -> None:
         time=summary.result_available_after
     ))
 
-def delete_user(user: User) -> None:
+async def delete_user(user: User) -> None:
     """ Removes users from the graph database.
     
     Args: 
     user (User): user to be removed """
 
-    summary = driver.execute_query( 
+    summary = await driver.execute_query( 
         """ MATCH (u: User)
         WHERE u.userid = $userid
         DELETE u""", 
@@ -57,10 +57,10 @@ def delete_user(user: User) -> None:
         time=summary.result_available_after
     ))
 
-def find_user(user: User) -> bool:
+async def find_user(user: User) -> bool:
     """ Finds a user in the graph database"""
 
-    records, summary, keys = driver.execute_query(
+    records, summary, keys = await driver.execute_query(
         """ MATCH (u: User {userid: $userid})
         RETURN u
         """,
@@ -69,13 +69,13 @@ def find_user(user: User) -> bool:
 
     return len(records) > 0
 
-def add_post(post: Post) -> None:
+async def add_post(post: Post) -> None:
     """ Adds posts to the graph database.
     
     Args: 
     Post (Post): post to be added """
 
-    summary = driver.execute_query( 
+    summary = await driver.execute_query( 
         """ CREATE (p: Post {postid: $postid, content: $content, author: $author, date: $date, edited: $edited, like_count: 0})
             MATCH (u:User)
             WHERE u.userid = p.author
@@ -83,7 +83,7 @@ def add_post(post: Post) -> None:
         """, 
         postid=post.postid,
         content=post.content, 
-        author=post.author.userid, 
+        author=post.author_id, 
         date=post.date.isoformat(),
         edited=post.edited,
         database_="neo4j",
@@ -94,7 +94,7 @@ def add_post(post: Post) -> None:
         time=summary.result_available_after
     ))
 
-def add_like(user: User, post: Post) -> None:
+async def add_like(user: User, post: Post) -> None:
     """ Updates like relationship in graph database. 
     
     Args: 
@@ -102,7 +102,7 @@ def add_like(user: User, post: Post) -> None:
     user (User): the user who liked the post
     post (Post): the post that was liked
     """
-    summary = driver.execute_query( 
+    summary = await driver.execute_query( 
         """ MATCH (p:Post)
             WHERE p.postid = $postid
             MATCH (u:User)
@@ -120,9 +120,9 @@ def add_like(user: User, post: Post) -> None:
         time=summary.result_available_after
     ))
 
-def add_reply(parent_post: Post, reply: Post):
+async def add_reply(parent_post: Post, reply: Post):
     """ Adds reply relationships to the graph database"""
-    summary = driver.execute_query( 
+    summary = await driver.execute_query( 
         """ MATCH (p1:Post)
             WHERE p1.postid = $postid1
             MATCH (p2:Post)
@@ -135,11 +135,10 @@ def add_reply(parent_post: Post, reply: Post):
         database_="neo4j",
     ).summary
 
-# TO DO for Chris
 
-def add_follow(user1: User, user2: User):
+async def add_follow(user1: User, user2: User):
     """ Makes User 1 follow User 2"""
-    summary = driver.execute_query(
+    summary = await driver.execute_query(
         """
             MATCH (a:User {userid: $u1}), (b:User {userid: $u2})
             WHERE a <> b
@@ -175,9 +174,9 @@ def add_follow(user1: User, user2: User):
     print(f"add_follow: relationships_created={summary.counters.relationships_created}")
     return summary.counters.relationships_created
 
-def find_friends(user: User) -> List[str]:
+async def find_friends(user: User) -> List[str]:
     """ Returns a list of the userids of the friends of user"""
-    records, _, _ = driver.execute_query(
+    records, _, _ = await driver.execute_query(
         """
             MATCH (me:User {userid: $me})
             MATCH (me)-[:FOLLOWS]->(u:User)-[:FOLLOWS]->(me)
@@ -189,9 +188,9 @@ def find_friends(user: User) -> List[str]:
     )
     return [r["userid"] for r in records]
 
-def find_posts(user: User) -> List[str]:
+async def find_posts(user: User) -> List[str]:
     """ Returns a list of the postids of the user's' posts"""
-    records, _, _ = driver.execute_query(
+    records, _, _ = await driver.execute_query(
         """
             MATCH (u:User {userid: $userid})-[:POSTED]->(p:Post)
             RETURN p.postid AS postid

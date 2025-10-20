@@ -1,14 +1,15 @@
 import os
+from dotenv import load_dotenv
 import uuid
-from pydantic import BaseModel, EmailStr
+
 from supabase import create_client, Client
+
+from .imports import UserCreate, UserResponse, PostCreate, PostResponse
+
 from typing import Optional
 from datetime import datetime
-from dotenv import load_dotenv
-
 
 load_dotenv()
-
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
@@ -17,36 +18,6 @@ assert SUPABASE_URL is not None, "SUPABASE_URL missing"
 assert SUPABASE_KEY is not None, "SUPABASE_KEY missing"
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-# create the user data model thing
-class UserCreate(BaseModel):
-  username: str
-  email: EmailStr
-  password: str
-  profile_picture: Optional[str] = None
-  bio: Optional[str] = None
-
-#no password
-class UserResponse(BaseModel):
-  userid: str
-  username: str
-  email: EmailStr
-  profile_picture: Optional[str] = None
-  bio: Optional[str] = None
-
-#create new post
-class PostCreate(BaseModel):
-  content: str
-  author_id: str
-
-#return a post
-class PostResponse(BaseModel):
-  postid: str
-  content: str 
-  author_id: str
-  date: datetime
-  edited: bool
-  num_likes: int
 
 async def create_user(user_data: UserCreate) -> dict:
   #create a new user and also puts them into the supabase table
@@ -91,7 +62,7 @@ async def create_user(user_data: UserCreate) -> dict:
       }
 
 async def get_user_email(email:str) -> Optional[dict]:
-  #see if the user is in the database
+  """Checks if the user is in the database"""
 
   try:
     response = supabase.table("users").select("*").eq("email", email).execute()
@@ -105,7 +76,7 @@ async def get_user_email(email:str) -> Optional[dict]:
     return None
 
 async def get_user_username(username:str) -> Optional[dict]:
-  #see if the user is in the database
+  """Checks if the user is in the database """
 
   try:
     response = supabase.table("users").select("*").eq("username", username).execute()
@@ -119,7 +90,7 @@ async def get_user_username(username:str) -> Optional[dict]:
     return None
 
 async def create_post(post_data: PostCreate) -> dict:
-    #creates a new post and puts them in the supabase posts table
+    """ Creates a new post and puts them in the supabase posts table """
     try:
         post_id = str(uuid.uuid4())
         record = {

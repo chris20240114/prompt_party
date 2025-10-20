@@ -1,28 +1,82 @@
-# Create our GraphQL schemas here
-# If they become too hectic, we will create standalone files for each subgroup
-# Should all contain the basic imports as defined here
-
 import strawberry
-from typing import Optional
-from datetime import datetime
-import sys, os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from database.relational_db.supabase_service import create_post, PostCreate, PostResponse
+from strawberry.exceptions import GraphQLError
 
+from typing import List, Optional
+
+from database.relational_db.supabase_service import supabase, create_post
+from database.graph_db.graph import add_post
+
+from graphql_types import UserType, PostType, PostInput, convert_Post_to_PostType, convert_User_to_UserType
+from classes import User, Post, PostResponse, PostCreate
+
+# ---- Query Resolvers ----
 @strawberry.type
-class PostType:
-    postid: str
-    content: str
-    author_id: str
-    date: datetime
-    edited: bool
-    num_likes: int
+class Query:
+    @strawberry.field
+    def all_posts(self) -> List[PostType]:
+        """ Return all posts """
+        response = supabase.table("posts").select("*").execute()
+        posts = []
+        for p in response.data:
+            posts.append(
+                PostType(
+                    postid=p["postid"],
+                    content=p["content"],
+                    authorid=p["author_id"],
+                    date=p["date"],
+                    edited=p["edited"],
+                    num_likes=p["num_likes"],
+                )
+            )
+        return posts
 
-@strawberry.input
-class PostInput:
-    content: str
-    author_id: str
+    @strawberry.field
+    def user_posts(self, userid: str) -> List[PostType]:
+        #TODO for Sarah: please place all Supabase logic in supabase_service.py file
+        """Return all posts from a specific user."""
+        response = supabase.table("posts").select("postid").eq("author_id", userid).execute()
+        post_ids = [p["postid"] for p in response.data]
 
+        posts = []
+        for pid in post_ids:
+            res = supabase.table("posts").select("*").eq("postid", pid).execute()
+            if res.data:
+                p = res.data[0]
+                posts.append(
+                    PostType(
+                        postid=p["postid"],
+                        content=p["content"],
+                        authorid=p["author_id"],
+                        date=p["date"],
+                        edited=p["edited"],
+                        num_likes=p["num_likes"],
+                    )
+                )
+        return posts
+
+    @strawberry.field
+    def post_by_id(self, postid: str) -> Optional[PostType]:
+        #TODO for Sarah: please place all Supabase logic in supabase_service.py file
+        """" Return a post by its post_id """
+        res = supabase.table("posts").select("*").eq("postid", postid).execute()
+        
+        if not res.data:
+            raise GraphQLError(
+                f"!! Post {postid} does not exist !!"
+            )
+        
+        p = res.data[0]
+
+        return PostType(
+            postid=p["postid"],
+            content=p["content"],
+            authorid=p["author_id"],
+            date=p["date"],
+            edited=p["edited"],
+            num_likes=p["num_likes"],
+        )
+
+# ---- Mutation Resolvers ----
 @strawberry.type
 class Mutation:
     @strawberry.mutation
@@ -32,25 +86,16 @@ class Mutation:
             result = await create_post(post_create)
 
             if not result.get("success"):
-                return None
+                raise GraphQLError("Error in creating post")
 
             post = result["post"]
-            return PostType(
-                postid=post.postid,
-                content=post.content,
-                author_id=post.author_id,
-                date=post.date,
-                edited=post.edited,
-                num_likes=post.num_likes
-            )
+            
+            await add_post(post)
+            
+            return convert_Post_to_PostType(post)
+
         except Exception as e:
             print("Error creating post:", e)
             return None
-
-@strawberry.type
-class Query:
-    @strawberry.field
-    def temp(self) -> str:
-        return "Placeholder for future queries"
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)

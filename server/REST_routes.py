@@ -1,9 +1,10 @@
 from fastapi import APIRouter, HTTPException, status
-from server.database.relational_db.supabase_service import create_user, get_user_email, get_user_username, UserCreate
+from database.relational_db.supabase_service import create_user, get_user_email, get_user_username, UserCreate, create_post, PostCreate
 
-router = APIRouter(prefix="/api/users", tags=["users"])
+user_router = APIRouter(prefix="/users", tags=["users"])
+post_router = APIRouter(prefix="/posts", tags=["Posts"])
 
-@router.post("/register", status_code=status.HTTP_201_CREATED)
+@user_router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register_user(user_data: UserCreate):
     # Check if username exists
     existing_username = await get_user_username(user_data.username)
@@ -35,12 +36,21 @@ async def register_user(user_data: UserCreate):
         "user": result["user"]
     }
 
-@router.get("/check-email/{email}")
+@user_router.get("/check-email/{email}")
 async def check_email_exists(email: str):
     user = await get_user_email(email)
     return {"exists": user is not None}
 
-@router.get("/check-username/{username}")
+@user_router.get("/check-username/{username}")
 async def check_username_exists(username: str):
     user = await get_user_username(username)
     return {"exists": user is not None}
+
+@post_router.post("/create", response_model=dict)
+async def add_post(post: PostCreate):
+
+    result = await create_post(post)
+    if result.get("success"):
+        return result
+    else:
+        raise HTTPException(status_code=400, detail=result.get("error"))

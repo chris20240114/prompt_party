@@ -6,7 +6,7 @@ import os
 rel_db_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "database", "relational_db"))
 sys.path.append(rel_db_dir)
 
-from gql_schema_posts import schema
+from gql_schema import schema
 
 # already created 5 new users, each with 3 posts
 
