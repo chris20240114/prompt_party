@@ -1,10 +1,11 @@
 from fastapi import FastAPI
-from user_routes import router as user_router
+from strawberry.fastapi import GraphQLRouter
+from gql_schema import schema
 
 app = FastAPI(title="Prompt Party API")
 
-app.include_router(user_router)
-
+graphql_app = GraphQLRouter(schema)
+app.include_router(graphql_app, prefix="/graphql")
 
 if __name__ == "__main__":
     import uvicorn
