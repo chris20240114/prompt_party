@@ -374,8 +374,48 @@ class Mutation:
 
     @strawberry.mutation
     async def update_post_field(self, post_id: str, field_to_update: str, update: str) -> Optional[PostType]:
-        #TODO
-        return 
+        """
+        Updates post on specified field 
+    
+        Args: 
+            postid (str): the postid of the user we want to update
+            field_to_update (str): the field we seek to update
+            update (str): our updated value
+
+        Returns:
+            Optional[PostType]: The updated post's data if successful, None if error occurs
+
+        Raises:    
+            AssertionError: if we try to update userid, authorid  
+        """
+        assert field_to_update not in ["postid", "authorid"], "You cannot update these parameters"
+    
+        try: 
+            
+            response = sp.supabase.table("posts") \
+            .update({field_to_update: update}) \
+            .eq("postid", post_id) \
+            .execute()
+            post = (
+                sp.supabase.table("posts")
+                .update({field_to_update: update})
+                .eq("postid", post_id)
+                .execute()
+            )
+
+            if not response.data or len(response.data) == 0:
+                print(f"[update_post_field] No post found with postid={post_id}")
+                return None
+        
+            updated_post_data = response.data[0]
+
+            print(f"[Supabase] Successfully updated {field_to_update} for post {post_id}.")
+            return PostType(**updated_post_data)
+    
+        except Exception as e:
+            print("Error in updating post: ", e)
+            return None
+     
 
     @strawberry.mutation
     async def update_user_field(self, user_id: str, field_to_update: str, update: str) -> Optional[PostType]:
