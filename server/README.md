@@ -109,6 +109,10 @@ query {
 }
 ```
 
+**Get Userid from Username**
+
+**Get User from Userid**
+
 #### Mutations
 
 **Create Post:**
@@ -126,6 +130,14 @@ mutation {
   }
 }
 ```
+
+**Create User**
+
+**Delete User**
+
+**Add Like**
+
+**Add Follow**
 
 ## Project Structure
 
@@ -166,7 +178,7 @@ GraphQL errors include detailed error messages for debugging.
 - `userid`: Unique identifier
 - `username`: Display name
 - `email`: Email address (validated)
-- `profile_picture`: Optional avatar URL
+- `profile_picture`: Optional base64 for profile picture.
 - `bio`: Optional user biography
 
 ### Post

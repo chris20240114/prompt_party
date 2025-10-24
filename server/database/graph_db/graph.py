@@ -68,6 +68,10 @@ def find_user(user: User) -> bool:
 
     return len(records) > 0
 
+def update_user(userid: str, field_to_update: str, update: str) -> None:
+    #TODO 
+    return
+
 def add_post(post: Post) -> None:
     """ Adds posts to the graph database.
     
@@ -91,6 +95,34 @@ def add_post(post: Post) -> None:
         postid = post.postid,
         time=summary.result_available_after
     ))
+
+def delete_post(post: Post) -> None:
+    """ Deletes post from the graphs database.
+
+    Args:
+    post (Post): post to be deleted """
+
+    _, summary, _ = driver.execute_query( 
+        """ MATCH (p: Post)
+        WHERE p.postid = $post
+        DELETE p""", 
+        postid=post.postid, 
+        database_="neo4j",
+    )
+
+    print("[AuraDB] Deleted 1 node in {time} ms.".format(
+        nodes_created=summary.counters.nodes_created,
+        time=summary.result_available_after
+    ))
+
+def update_post_field(postid: str, field_to_update: str, update: str) -> None:
+    #TODO
+    return 
+
+def update_post(post: Post) -> None:
+    #TODO wholesale version
+    return
+
 
 def add_like(user: User, post: Post) -> None:
     """ Updates like relationship in graph database. 

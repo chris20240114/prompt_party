@@ -330,6 +330,60 @@ class Mutation:
             print("Error in deleting user: ", e)
             return None
 
+    @strawberry.mutation
+    async def delete_post(self, post_id: str) -> Optional[PostType]:
+        """
+        Deletes a post from both relational and graph databases.
+        
+        Args:
+            post_id (str): The unique post ID to delete (must be valid UUID format)
+            
+        Returns:
+            Optional[PostType]: The deleted post's data if successful, None if error occurs
+            
+        Raises:
+            GraphQLError: If there's an error deleting the post (e.g., invalid UUID, post not found)
+        """
+        try:
+            result = await sp.delete_post(post_id)
+            
+            if not result.get("success"):
+                error_msg = result.get('error', 'Unknown error')
+                raise GraphQLError(f"Error in deleting user.\n Details: {error_msg}")
+
+            post_data = {k: v for k, v in result.items() if k != 'success'}
+            print(f"[SUPABASE] Successfully deleted user {post_id}")
+
+            post = Post(**post_data)
+            
+            n4j.delete_post(post)
+
+            return PostType(
+                post=post_data.get("postid", ""),
+                content=post_data.get("content", ""),
+                authorid=post_data.get("authorid", ""),
+                date=post_data.get("date", ""),
+                edited=post.get("edited", ""),
+                num_likes=post.get("num_likes", "")
+            )
+        except GraphQLError:
+            raise
+        except Exception as e:
+            print("Error in deleting user: ", e)
+            return None
+
+    @strawberry.mutation
+    async def update_post_field(self, post_id: str, field_to_update: str, update: str) -> Optional[PostType]:
+        #TODO
+        return 
+
+    @strawberry.mutation
+    async def update_user_field(self, user_id: str, field_to_update: str, update: str) -> Optional[PostType]:
+        #TODO
+        return
+
+    
+
 
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)

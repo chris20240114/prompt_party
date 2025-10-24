@@ -148,7 +148,6 @@ async def get_userid(username: str) -> Optional[dict]:
 
     except Exception as e:
         return {"success": False, "error": str(e)}
-    
 
 async def get_user_username(username: str) -> Optional[dict]:
     """
@@ -268,6 +267,47 @@ async def delete_user(userid: str) -> dict:
     except Exception as e:
         return {"success": False, "error": str(e)}
 
+async def update_user_field(userid: str, field_to_update: str, update: str) -> dict:
+    """ Updates user on specified field 
+    
+    Args: 
+        userid (str): the userid of the user we want to update
+        field_to_update (str): the field we seek to update
+        update (str): our updated value
+
+    Returns:
+        dict: will contain the following: \
+            - success (bool): whether or not the operation was successful
+            - user_data (dict): this will be data for the updated user
+            - error (str): the error message
+
+    Raises:    
+        AssertionError: if we try to update postid, authorid
+
+    Example: 
+        >>> response = field_to_update("uuid-here", "bio", "hello")
+        >>> response["bio"] == "hello" # should return true!    
+    """
+    
+    assert field_to_update != "userid", "You cannot update these parameters"
+    
+    try: 
+        user_response = (
+            supabase.table("users")
+            .update({field_to_update: update})
+            .eq("userid", userid)
+            .execute()
+        )
+
+        if not user_response.data or len(user_response.data) == 0:
+            return {"success": False, "error": "No such user exists"}
+        
+        user_data = supabase.table("users").select("*").eq("userid", userid)[0]
+
+        return {"success": True, **user_data}
+    
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 async def create_post(post_data: PostCreate) -> dict:
     """
@@ -325,5 +365,103 @@ async def create_post(post_data: PostCreate) -> dict:
                 num_likes=0
             )
         }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+async def delete_post(postid: str) -> dict:
+    """
+    Deletes a post from Supabase and returns the deleted user's data.
+    
+    This function first validates the UUID format, then retrieves the user data
+    before deletion, performs the deletion, and returns the post data for
+    use in related operations (like removing from graph database).
+    
+    Args:
+        postid (str): The unique post ID to delete (must be valid UUID format)
+    
+    Returns:
+        dict: Response dictionary containing: \
+            - success (bool): Whether the operation was successful \
+            - postid (str): Deleted post's ID if successful \
+            - content (str): Deleted post's content if successful \
+            - authorid (str): Deleted posts's author userid if successful \
+            - date (str): Deleted posts's date of when created if successful \
+            - edited (str): Deleted user's bio if successful \
+            - num_likes (str): Number of likes for the post \
+            - error (str): Error message if unsuccessful \          
+    
+    Example:
+        >>> result = await delete_post("123e4567-e89b-12d3-a456-426614174000")
+        >>> if result.get("success"):
+        ...     print(f"Deleted post: {result['postname']}")
+        >>>     # Use post data for cleanup operations
+        >>> else:
+        ...     print(f"Error: {result.get('error')}")
+    """
+    try:
+        # Validate UUID format
+        try:
+            uuid.UUID(postid)
+        except ValueError:
+            return {"success": False, "error": "Invalid UUID format"}
+        
+        post_response = supabase.table("posts").select("*").eq("postid", postid).execute()
+        
+        if not post_response.data or len(post_response.data) == 0:
+            return {"success": False, "error": "No such post exists"}
+        
+        post_data = post_response.data[0]
+        
+        delete_response = (
+            supabase.table("posts")
+            .delete()
+            .eq("postid", postid)
+            .execute()
+        )
+        
+        return {"success": True, **post_data}
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+async def update_post_field(postid: str, field_to_update: str, update: str) -> dict:
+    """ Updates post on specified field 
+    
+    Args: 
+        postid (str): the postid of the post we want to update
+        field_to_update (str): the field we seek to update
+        update (str): our updated value
+
+    Returns:
+        dict: will contain the following: \
+            - success (bool): whether or not the operation was successful
+            - post_data (dict): this will be data for the updated post
+            - error (str): the error message
+
+    Raises:    
+        AssertionError: if we try to update postid, authorid
+
+    Example: 
+        >>> response = field_to_update("uuid-here", "content", "hello")
+        >>> response["content"] == "hello" # should return true!    
+    """
+
+    assert field_to_update not in ("postid", "authorid"), "You cannot update these parameters"
+    
+    try: 
+        post_response = (
+            supabase.table("posts")
+            .update({field_to_update: update})
+            .eq("postid", postid)
+            .execute()
+        )
+
+        if not post_response.data or len(post_response.data) == 0:
+            return {"success": False, "error": "No such post exists"}
+        
+        post_data = supabase.table("posts").select("*").eq("postid", postid)[0]
+
+        return {"success": True, **post_data}
+    
     except Exception as e:
         return {"success": False, "error": str(e)}
