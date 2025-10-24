@@ -66,6 +66,24 @@ async def test_graphql_queries():
             result_post = await schema.execute(query_post_by_id)
             post_success = bool(result_post.data and "postById" in result_post.data and result_post.data["postById"])
             print(f"[post_by_id] Post {first_post_id}: {'Success' if post_success else 'Failed'}")
+        
+    #Tests adding a post for the first user
+    test_user = EXISTING_USERS[0]["userid"]
+    mutation_add_post = f"""
+    mutation {{
+        addPost(content: "Test", authorId: "{test_user}") {{
+            postid
+            content
+            author_id
+        }}
+    }}
+    """
+    result_mutation = await schema.execute(mutation_add_post)
+    if result_mutation.data and "addPost" in result_mutation.data:
+        print(f"[add_post] Success: Created post {result_mutation.data['addPost']['postid']}")
+    else:
+        print("[add_post] Failed to create post")
+
 
 async def main():
     await test_graphql_queries()
