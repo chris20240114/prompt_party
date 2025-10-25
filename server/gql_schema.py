@@ -37,8 +37,8 @@ class Query:
         return posts
 
     @strawberry.field
-    def user_posts(self, userid: str) -> List[PostType]:
-        #TODO for Sarah: please place all Supabase logic in supabase_service.py file
+    async def user_posts(self, userid: str) -> List[PostType]:
+        #--TODO for Sarah: please place all Supabase logic in supabase_service.py file
         """
         Retrieves all posts created by a specific user.
         
@@ -49,29 +49,17 @@ class Query:
             List[PostType]: List of posts created by the specified user.
                            Returns empty list if user has no posts or user doesn't exist.
         """
-        response = sp.supabase.table("posts").select("postid").eq("author_id", userid).execute()
-        post_ids = [p["postid"] for p in response.data]
+        result = await sp.get_user_posts(userid)
 
-        posts = []
-        for pid in post_ids:
-            res = sp.supabase.table("posts").select("*").eq("postid", pid).execute()
-            if res.data:
-                p = res.data[0]
-                posts.append(
-                    PostType(
-                        postid=p["postid"],
-                        content=p["content"],
-                        authorid=p["author_id"],
-                        date=p["date"],
-                        edited=p["edited"],
-                        num_likes=p["num_likes"],
-                    )
-                )
-        return posts
+        if not result.get("success"):
+            raise GraphQLError(f"Error fetching posts: {result.get('error')}")
+
+        return [PostType(**p) for p in result.get("posts", [])]
+
 
     @strawberry.field
-    def post_by_id(self, postid: str) -> Optional[PostType]:
-        #TODO for Sarah: please place all Supabase logic in supabase_service.py file
+    async def post_by_id(self, postid: str) -> Optional[PostType]:
+        #--TODO for Sarah: please place all Supabase logic in supabase_service.py file
         """
         Retrieves a specific post by its unique post ID.
         
@@ -84,23 +72,14 @@ class Query:
         Raises:
             GraphQLError: If the post with the given ID doesn't exist
         """
-        res = sp.supabase.table("posts").select("*").eq("postid", postid).execute()
-        
-        if not res.data:
-            raise GraphQLError(
-                f"!! Post {postid} does not exist !!"
-            )
-        
-        p = res.data[0]
+        result = await sp.get_post_by_id(postid)
 
-        return PostType(
-            postid=p["postid"],
-            content=p["content"],
-            authorid=p["author_id"],
-            date=p["date"],
-            edited=p["edited"],
-            num_likes=p["num_likes"],
-        )
+        if not result.get("success"):
+            raise GraphQLError(result.get("error", f"Post {postid} not found"))
+
+        p = result["post"]
+        return PostType(**p)
+
 
     @strawberry.field
     async def userid_by_username(self, username: str) -> Optional[str]:
@@ -241,7 +220,7 @@ class Mutation:
             return
 
     @strawberry.mutation
-    def add_like(self, post_data: PostInput, user_data: UserInput) -> Optional[PostType]:
+    async def add_like(self, post_data: PostInput, user_data: UserInput) -> Optional[PostType]:
         """
         Adds a like from a user to a specific post in the graph database.
         
@@ -257,8 +236,10 @@ class Mutation:
             post = Post(**post_data.__dict__)
 
             n4j.add_like(user, post)
-            #TODO make this function in supabase_service.py
-            #update_like_count(post)
+            #--TODO make this function in supabase_service.py
+            n4j.add_like(user, post)
+            await sp.update_like_count(post)
+
 
             return post.convert_PostType
         except Exception as e:
@@ -420,8 +401,29 @@ class Mutation:
     @strawberry.mutation
     async def update_user_field(self, user_id: str, field_to_update: str, update: str) -> Optional[PostType]:
         #TODO
-        return
+        """
+        Updates a user's field in the Supabase users table.
 
+        Args:
+            userid (str): The user ID to update.
+            field_to_update (str): The field name to update (e.g., "bio", "username").
+            update (str): The new value for that field.
+
+        Returns:
+            UserType: The updated user record.
+        """
+        result = await sp.update_user_field(userid, field_to_update, update)
+
+        if not result.get("success"):
+            raise GraphQLError(result.get("error", "Failed to update user field"))
+
+        return UserType(
+            userid=result["userid"],
+            username=result["username"],
+            email=result["email"],
+            profile_picture=result.get("profile_picture"),
+            bio=result.get("bio")
+        )
     
 
 

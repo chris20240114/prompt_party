@@ -302,7 +302,7 @@ async def update_user_field(userid: str, field_to_update: str, update: str) -> d
         if not user_response.data or len(user_response.data) == 0:
             return {"success": False, "error": "No such user exists"}
         
-        user_data = supabase.table("users").select("*").eq("userid", userid)[0]
+        user_data = supabase.table("users").select("*").eq("userid", userid).execute().data[0]
 
         return {"success": True, **user_data}
     
@@ -459,9 +459,70 @@ async def update_post_field(postid: str, field_to_update: str, update: str) -> d
         if not post_response.data or len(post_response.data) == 0:
             return {"success": False, "error": "No such post exists"}
         
-        post_data = supabase.table("posts").select("*").eq("postid", postid)[0]
+        post_data = supabase.table("posts").select("*").eq("postid", postid).execute().data[0]
 
         return {"success": True, **post_data}
     
     except Exception as e:
+        return {"success": False, "error": str(e)}
+    
+async def get_user_posts(userid: str) -> dict:
+    """
+    Retrieves all posts created by a specific user.
+    """
+    try:
+        response = supabase.table("posts").select("*").eq("authorid", userid).execute()
+        if not response.data:
+            return {"success": True, "posts": []}
+        return {"success": True, "posts": response.data}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+async def get_post_by_id(postid: str) -> dict:
+    """
+    Retrieves a post by its postid.
+    """
+    try:
+        response = supabase.table("posts").select("*").eq("postid", postid).execute()
+        if not response.data or len(response.data) == 0:
+            return {"success": False, "error": "No such post exists"}
+        return {"success": True, "post": response.data[0]}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+    
+async def update_like_count(post):
+    """
+    Increments the num_likes field of the given post in Supabase.
+
+    Args:
+        post (Post): A Post object representing the liked post.
+
+    Returns:
+        dict: { "success": bool, "post": updated_post_data or None, "error": str or None }
+    """
+    try:
+        # get current like count
+        response = supabase.table("posts").select("num_likes").eq("postid", post.postid).execute()
+        if not response.data:
+            return {"success": False, "error": f"Post {post.postid} not found"}
+
+        current_likes = response.data[0].get("num_likes", 0)
+
+        # increment and update
+        new_count = current_likes + 1
+        update_response = (
+            supabase.table("posts")
+            .update({"num_likes": new_count})
+            .eq("postid", post.postid)
+            .execute()
+        )
+
+        updated_post = update_response.data[0] if update_response.data else None
+        print(f"[Supabase] Updated like count for post {post.postid} -> {new_count}")
+
+        return {"success": True, "post": updated_post}
+
+    except Exception as e:
+        print("Error updating like count:", e)
         return {"success": False, "error": str(e)}
