@@ -412,7 +412,7 @@ class Mutation:
         Returns:
             UserType: The updated user record.
         """
-        result = await sp.update_user_field(userid, field_to_update, update)
+        result = await sp.update_user_field(user_id, field_to_update, update)
 
         if not result.get("success"):
             raise GraphQLError(result.get("error", "Failed to update user field"))
