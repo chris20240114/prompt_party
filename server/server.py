@@ -11,14 +11,14 @@ app = FastAPI(
     title="Prompt Party API",
     description="API for PromptParty",
     version="1.0.0",
-    docs_url="/docs",        
+    docs_url="/docs",
     redoc_url="/redoc",
 )
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -28,7 +28,7 @@ app.mount("/graphql_docs", StaticFiles(directory="./documentation"), name="graph
 
 # Include REST routers
 app.include_router(user_router)
-app.include_router(post_router) 
+app.include_router(post_router)
 
 # GraphQL router
 graphql_app = GraphQLRouter(schema)
