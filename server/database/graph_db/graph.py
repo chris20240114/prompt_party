@@ -227,6 +227,19 @@ def find_posts(user: User) -> List[str]:
     )
     return [r["postid"] for r in records]
 
+def find_replies(post: Post) -> List[str]:
+    """ Returns a list of the postids of the post's replies"""
+    records, _, _ = driver.execute_query(
+        """
+            MATCH (p1:Post {postid: $postid})-[:HASREPLY]->(p2:Post)
+            RETURN p2.postid AS postid
+            ORDER BY p2.date DESC
+        """,
+        userid=post.postid,
+        database_="neo4j",
+    )
+    return [r["postid"] for r in records]
+
 
 
 def main():
