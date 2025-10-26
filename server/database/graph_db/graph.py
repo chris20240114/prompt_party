@@ -1,4 +1,5 @@
 from neo4j import GraphDatabase
+from torch import K
 
 from .imports import User, Post
 from typing import List
@@ -20,14 +21,14 @@ driver = GraphDatabase.driver(URI, auth=AUTH)
 
 def add_user(user: User) -> None:
     """ Adds users to the graph database.
-    
-    Args: 
+
+    Args:
     user (User): user to be added """
 
-    _, summary, _ = driver.execute_query( 
-        """ CREATE (n:User {userid: $userid, username: $username, email: $email})""", 
-        userid=user.userid, 
-        username=user.username, 
+    _, summary, _ = driver.execute_query(
+        """ CREATE (n:User {userid: $userid, username: $username, email: $email})""",
+        userid=user.userid,
+        username=user.username,
         email=user.email,
         database_="neo4j",
     )
@@ -39,15 +40,15 @@ def add_user(user: User) -> None:
 
 def delete_user(user: User) -> None:
     """ Removes users from the graph database.
-    
-    Args: 
+
+    Args:
     user (User): user to be removed """
 
-    _, summary, _ = driver.execute_query( 
+    _, summary, _ = driver.execute_query(
         """ MATCH (u: User)
         WHERE u.userid = $userid
-        DELETE u""", 
-        userid=user.userid, 
+        DELETE u""",
+        userid=user.userid,
         database_="neo4j",
     )
 
@@ -69,23 +70,23 @@ def find_user(user: User) -> bool:
     return len(records) > 0
 
 def update_user(userid: str, field_to_update: str, update: str) -> None:
-    #TODO 
+    #TODO
     return
 
 def add_post(post: Post) -> None:
     """ Adds posts to the graph database.
-    
-    Args: 
+
+    Args:
     Post (Post): post to be added """
 
-    _, summary, _ = driver.execute_query( 
+    _, summary, _ = driver.execute_query(
         """MATCH (u:User {userid: $author})
             CREATE (p: Post {postid: $postid, content: $content, author: $author, date: $date, edited: $edited, like_count: 0})
             CREATE (u)-[:POSTED]->(p)
-        """, 
+        """,
         postid=post.postid,
-        content=post.content, 
-        author=post.authorid, 
+        content=post.content,
+        author=post.authorid,
         date=post.date.isoformat(),
         edited=post.edited,
         database_="neo4j",
@@ -102,11 +103,11 @@ def delete_post(post: Post) -> None:
     Args:
     post (Post): post to be deleted """
 
-    _, summary, _ = driver.execute_query( 
+    _, summary, _ = driver.execute_query(
         """ MATCH (p: Post)
         WHERE p.postid = $post
-        DELETE p""", 
-        postid=post.postid, 
+        DELETE p""",
+        postid=post.postid,
         database_="neo4j",
     )
 
@@ -117,7 +118,7 @@ def delete_post(post: Post) -> None:
 
 def update_post_field(postid: str, field_to_update: str, update: str) -> None:
     #TODO
-    return 
+    return
 
 def update_post(post: Post) -> None:
     #TODO wholesale version
@@ -125,19 +126,19 @@ def update_post(post: Post) -> None:
 
 
 def add_like(user: User, post: Post) -> None:
-    """ Updates like relationship in graph database. 
-    
-    Args: 
+    """ Updates like relationship in graph database.
+
+    Args:
 
     user (User): the user who liked the post
     post (Post): the post that was liked
     """
-    _, summary, _ = driver.execute_query( 
+    _, summary, _ = driver.execute_query(
         """ MATCH (p:Post {postid: $postid})
             MATCH (u:User {userid: $userid})
             CREATE (u)-[:LIKED]->(p)
             SET p.like_count = p.like_count + 1
-        """, 
+        """,
         postid = post.postid,
         userid = user.userid,
         database_="neo4j",
@@ -150,12 +151,12 @@ def add_like(user: User, post: Post) -> None:
 
 def add_reply(parent_post: Post, reply: Post):
     """ Adds reply relationships to the graph database"""
-    _, summary, _ = driver.execute_query( 
+    _, summary, _ = driver.execute_query(
         """ MATCH (p1:Post {postid: $postid1})
             MATCH (p2:Post {postid: $postid2})
             CREATE (p1)-[:REPLIES]->(p2)
             CREATE (p2)-[:HASREPLY]->(p1)
-        """, 
+        """,
         postid1= reply.postid,
         postid2 = parent_post.postid,
         database_="neo4j",
@@ -196,7 +197,7 @@ def add_follow(user1: User, user2: User):
             // Return the relationship (optional — mainly for debugging)
             RETURN r
     """
-    
+
     print(f"add_follow: relationships_created={summary.counters.relationships_created}")
     return summary.counters.relationships_created
 
@@ -207,7 +208,7 @@ def find_friends(user: User) -> List[str]:
             MATCH (me:User {userid: $me})
             MATCH (me)-[:FOLLOWS]->(u:User)-[:FOLLOWS]->(me)
             RETURN u.userid AS userid
-            ORDER BY userid 
+            ORDER BY userid
         """,
         me=user.userid,
         database_="neo4j",
@@ -226,8 +227,6 @@ def find_posts(user: User) -> List[str]:
         database_="neo4j",
     )
     return [r["postid"] for r in records]
-
-
 
 def main():
     u2 = User("1", "user1", "email1@email.com", "124")
