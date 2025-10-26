@@ -38,7 +38,6 @@ class Query:
 
     @strawberry.field
     async def user_posts(self, userid: str) -> List[PostType]:
-        #--TODO for Sarah: please place all Supabase logic in supabase_service.py file
         """
         Retrieves all posts created by a specific user.
         
@@ -59,7 +58,6 @@ class Query:
 
     @strawberry.field
     async def post_by_id(self, postid: str) -> Optional[PostType]:
-        #--TODO for Sarah: please place all Supabase logic in supabase_service.py file
         """
         Retrieves a specific post by its unique post ID.
         
@@ -108,6 +106,11 @@ class Query:
         except Exception as e:
             print("Error in fetching userid: ", e)
             return None
+        
+    @strawberry.field
+    def get_followers(self, username: str) -> Optional[List[UserType]]:
+        #TODO Sarah, please implement this
+        return
 
     @strawberry.field
     async def user_by_userid(self, userid: str) -> Optional[UserType]:
@@ -235,8 +238,6 @@ class Mutation:
             user = User(**user_data.__dict__)
             post = Post(**post_data.__dict__)
 
-            n4j.add_like(user, post)
-            #--TODO make this function in supabase_service.py
             n4j.add_like(user, post)
             await sp.update_like_count(post)
 

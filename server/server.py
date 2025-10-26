@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
 from gql_schema import schema
 import uvicorn
+from fastapi.staticfiles import StaticFiles
+
 
 app = FastAPI(
     title="Prompt Party API",
@@ -21,6 +23,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/graphql_docs", StaticFiles(directory="./documentation"), name="graphql_docs")
 
 # Include REST routers
 app.include_router(user_router)
@@ -45,7 +49,9 @@ async def health_check():
             "graphql": "/graphql",
             "users": "/users",
             "posts": "/posts"
-        }
+        },
+        "graphql documentaion": "/graphql_docs/homepage.html",
+        "REST API documentation": "/docs"
     }
 
 graphql_app = GraphQLRouter(schema)
