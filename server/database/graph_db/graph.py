@@ -153,6 +153,7 @@ def add_reply(parent_post: Post, reply: Post):
     _, summary, _ = driver.execute_query( 
         """ MATCH (p1:Post {postid: $postid1})
             MATCH (p2:Post {postid: $postid2})
+            SET p1.isReply = true
             CREATE (p1)-[:REPLIES]->(p2)
             CREATE (p2)-[:HASREPLY]->(p1)
         """, 
@@ -219,6 +220,7 @@ def find_posts(user: User) -> List[str]:
     records, _, _ = driver.execute_query(
         """
             MATCH (u:User {userid: $userid})-[:POSTED]->(p:Post)
+            WHERE p.isReply = false
             RETURN p.postid AS postid
             ORDER BY p.date DESC
         """,
@@ -235,7 +237,7 @@ def find_replies(post: Post) -> List[str]:
             RETURN p2.postid AS postid
             ORDER BY p2.date DESC
         """,
-        userid=post.postid,
+        postid=post.postid,
         database_="neo4j",
     )
     return [r["postid"] for r in records]
