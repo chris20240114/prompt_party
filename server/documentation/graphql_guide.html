@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GraphQL Guide - PromptParty</title>
+    <!-- Prism.js for syntax highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-graphql.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        .nav-bar {
+            background-color: white;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .nav-bar a {
+            color: #3498db;
+            font-weight: 500;
+        }
+        .nav-bar a:hover {
+            text-decoration: none;
+            opacity: 0.8;
+        }
+        .nav-bar .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-bar .separator {
+            color: #bdc3c7;
+        }
+        .content-wrapper {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 5px;
+        }
+        h3 {
+            color: #7f8c8d;
+            margin-top: 20px;
+        }
+        h4 {
+            color: #95a5a6;
+            margin-top: 15px;
+        }
+        pre {
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        code {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .footer-nav {
+            background-color: white;
+            padding: 15px 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .footer-nav a {
+            color: #3498db;
+            font-weight: 500;
+            padding: 8px 15px;
+        }
+        .footer-nav a:hover {
+            text-decoration: none;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-bar">
+        <div class="breadcrumb">
+            <a href="homepage.html">← Documentation Home</a>
+            <span class="separator">|</span>
+            <span>GraphQL Guide</span>
+        </div>
+    </div>
+    <div class="content-wrapper">
+<h1>PromptParty API Guide</h1>
+<p>A FastAPI-based backend server for PromptParty, providing both REST and GraphQL APIs for user management and post functionality.</p>
+<h2>Environment Setup</h2>
+<p><strong>Set up environment variables</strong> (create a <code>.env</code> file):</p>
+<pre><code class="language-bash"># Supabase Configuration
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_anon_key
+
+# Neo4j Configuration (optional)
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USERNAME=neo4j
+NEO4J_PASSWORD=your_neo4j_password
+USE_NEO4J=false
+</code></pre>
+<h2>Running the Server</h2>
+<pre><code class="language-bash">python server.py
+</code></pre>
+<p>The server will start on <code>http://localhost:8000</code></p>
+<h2>API Documentation</h2>
+<p>Once the server is running, access the interactive documentation:</p>
+<ul>
+<li><strong>Swagger UI</strong>: <code>http://localhost:8000/docs</code></li>
+<li><strong>ReDoc</strong>: <code>http://localhost:8000/redoc</code></li>
+<li><strong>GraphQL Playground</strong>: <code>http://localhost:8000/graphql</code></li>
+</ul>
+<h2>API Endpoints</h2>
+<h3>REST API Endpoints</h3>
+<h4>Health Check</h4>
+<ul>
+<li><strong>GET</strong> <code>/</code> - Basic health check</li>
+<li><strong>GET</strong> <code>/health</code> - Detailed health status</li>
+</ul>
+<h4>User Management</h4>
+<ul>
+<li><p><strong>POST</strong> <code>/users/register</code> - Register a new user</p>
+<pre><code class="language-json">{
+  &quot;username&quot;: &quot;johndoe&quot;,
+  &quot;email&quot;: &quot;john@example.com&quot;,
+  &quot;password&quot;: &quot;securepassword&quot;,
+  &quot;profile_picture&quot;: &quot;https://example.com/avatar.jpg&quot;,
+  &quot;bio&quot;: &quot;Hello World!&quot;
+}
+</code></pre>
+</li>
+<li><p><strong>GET</strong> <code>/users/check-email/{email}</code> - Check if email exists</p>
+</li>
+<li><p><strong>GET</strong> <code>/users/check-username/{username}</code> - Check if username exists</p>
+</li>
+</ul>
+<h4>Post Management</h4>
+<ul>
+<li><strong>POST</strong> <code>/posts/create</code> - Create a new post<pre><code class="language-json">{
+  &quot;content&quot;: &quot;This is my first post!&quot;,
+  &quot;author_id&quot;: &quot;user-uuid-here&quot;
+}
+</code></pre>
+</li>
+</ul>
+<h3>GraphQL API</h3>
+<h4>Queries</h4>
+<p><strong>Get All Posts:</strong></p>
+<pre><code class="language-graphql">query {
+  allPosts {
+    postid
+    content
+    authorid
+    date
+    edited
+    numLikes
+  }
+}
+</code></pre>
+<p><strong>Get User&#39;s Posts:</strong></p>
+<pre><code class="language-graphql">query {
+  userPosts(userid: &quot;user-uuid-here&quot;) {
+    postid
+    content
+    authorid
+    date
+    edited
+    numLikes
+  }
+}
+</code></pre>
+<p><strong>Get Post by ID:</strong></p>
+<pre><code class="language-graphql">query {
+  postById(postid: &quot;post-uuid-here&quot;) {
+    postid
+    content
+    authorid
+    date
+    edited
+    numLikes
+  }
+}
+</code></pre>
+<p><strong>Get Userid from Username:</strong></p>
+<pre><code class="language-graphql">query {
+  useridByUsername(username: &quot;johndoe&quot;)
+}
+</code></pre>
+<p><strong>Get User from Userid:</strong></p>
+<pre><code class="language-graphql">query {
+  userByUserid(userid: &quot;user-uuid-here&quot;) {
+    userid
+    username
+    email
+    phone
+    profilePicture
+  }
+}
+</code></pre>
+<p><strong>Get Followers:</strong></p>
+<pre><code class="language-graphql">query {
+  getFollowers(username: &quot;johndoe&quot;) {
+    userid
+    username
+    email
+    profilePicture
+  }
+}
+</code></pre>
+<p><em>Note: This query is currently being implemented.</em></p>
+<h4>Mutations</h4>
+<p><strong>Create Post:</strong></p>
+<pre><code class="language-graphql">mutation {
+  createPost(postData: {
+    content: &quot;Hello GraphQL!&quot;,
+    authorid: &quot;user-uuid-here&quot;
+  }) {
+    postid
+    content
+    authorid
+    date
+    edited
+    numLikes
+  }
+}
+</code></pre>
+<p><strong>Create User:</strong></p>
+<pre><code class="language-graphql">mutation {
+  createUser(userData: {
+    username: &quot;johndoe&quot;,
+    email: &quot;john@example.com&quot;,
+    password: &quot;securepassword&quot;,
+    profilePicture: &quot;https://example.com/avatar.jpg&quot;,
+    bio: &quot;Hello World!&quot;
+  }) {
+    userid
+    username
+    email
+    profilePicture
+  }
+}
+</code></pre>
+<p><strong>Delete User:</strong></p>
+<pre><code class="language-graphql">mutation {
+  deleteUser(userId: &quot;user-uuid-here&quot;) {
+    userid
+    username
+    email
+    profilePicture
+  }
+}
+</code></pre>
+<p><strong>Delete Post:</strong></p>
+<pre><code class="language-graphql">mutation {
+  deletePost(postId: &quot;post-uuid-here&quot;) {
+    postid
+    content
+    authorid
+    date
+    edited
+    numLikes
+  }
+}
+</code></pre>
+<p><strong>Add Like:</strong></p>
+<pre><code class="language-graphql">mutation {
+  addLike(
+    postData: {
+      content: &quot;Post content&quot;,
+      authorid: &quot;author-uuid-here&quot;
+    },
+    userData: {
+      username: &quot;likerusername&quot;,
+      email: &quot;liker@example.com&quot;,
+      password: &quot;password&quot;
+    }
+  ) {
+    postid
+    content
+    numLikes
+  }
+}
+</code></pre>
+<p><strong>Add Follow:</strong></p>
+<pre><code class="language-graphql">mutation {
+  addFollow(
+    user1Id: &quot;follower-uuid-here&quot;,
+    user2Id: &quot;followed-uuid-here&quot;
+  ) {
+    userid
+    username
+    email
+    profilePicture
+  }
+}
+</code></pre>
+<p><strong>Update Post Field:</strong></p>
+<pre><code class="language-graphql">mutation {
+  updatePostField(
+    postId: &quot;post-uuid-here&quot;,
+    fieldToUpdate: &quot;content&quot;,
+    update: &quot;Updated post content&quot;
+  ) {
+    postid
+    content
+    authorid
+    date
+    edited
+    numLikes
+  }
+}
+</code></pre>
+<p><em>Note: Cannot update <code>postid</code> or <code>authorid</code> fields.</em></p>
+<p><strong>Update User Field:</strong></p>
+<pre><code class="language-graphql">mutation {
+  updateUserField(
+    userId: &quot;user-uuid-here&quot;,
+    fieldToUpdate: &quot;bio&quot;,
+    update: &quot;Updated biography&quot;
+  ) {
+    userid
+    username
+    email
+    profilePicture
+  }
+}
+</code></pre>
+<p><em>Note: Can be used to update fields like <code>bio</code>, <code>username</code>, <code>profile_picture</code>, etc.</em></p>
+<h2>Project Structure</h2>
+<pre><code>server/
+├── server.py                 # FastAPI application entry point
+├── classes.py                # Pydantic data models
+├── graphql_types.py          # GraphQL type definitions
+├── gql_schema.py            # GraphQL schema and resolvers
+├── REST_routes.py           # REST API route handlers
+├── database/
+│   ├── relational_db/
+│   │   └── supabase_service.py    # Supabase database operations
+│   └── graph_db/
+│       ├── graph.py              # Neo4j graph operations
+│       └── imports.py            # Import helpers
+└── README.md
+</code></pre>
+<h3>Database Operations</h3>
+<ul>
+<li><strong>Relational data</strong> (users, posts): Use functions in <code>database/relational_db/supabase_service.py</code></li>
+<li><strong>Graph relationships</strong> (likes, follows): Use functions in <code>database/graph_db/graph.py</code></li>
+</ul>
+<h2>Error Handling</h2>
+<p>The API handles errors gracefully:</p>
+<ul>
+<li><strong>400 Bad Request</strong>: Invalid input data</li>
+<li><strong>404 Not Found</strong>: Resource doesn&#39;t exist</li>
+<li><strong>500 Internal Server Error</strong>: Server-side issues</li>
+</ul>
+<p>GraphQL errors include detailed error messages for debugging.</p>
+<h2>Data Models</h2>
+<h3>User</h3>
+<ul>
+<li><code>userid</code>: Unique identifier</li>
+<li><code>username</code>: Display name</li>
+<li><code>email</code>: Email address (validated)</li>
+<li><code>profile_picture</code>: Optional base64 for profile picture.</li>
+<li><code>bio</code>: Optional user biography</li>
+</ul>
+<h3>Post</h3>
+<ul>
+<li><code>postid</code>: Unique identifier</li>
+<li><code>content</code>: Post text content</li>
+<li><code>author_id</code>: ID of the user who created the post</li>
+<li><code>date</code>: Creation timestamp</li>
+<li><code>edited</code>: Whether the post has been modified</li>
+<li><code>num_likes</code>: Number of likes received</li>
+</ul>
+<h2>Related Documentation</h2>
+<ul>
+<li><a href="https://fastapi.tiangolo.com/">FastAPI Documentation</a></li>
+<li><a href="https://strawberry.rocks/">Strawberry GraphQL Documentation</a></li>
+<li><a href="https://supabase.com/docs">Supabase Documentation</a></li>
+<li><a href="https://neo4j.com/docs/python-manual/current/">Neo4j Python Driver</a></li>
+</ul>
+
+
+    </div>
+    <div class="footer-nav">
+        <a href="homepage.html">← Back to Documentation Home</a>
+    </div>
+</body>
+</html>

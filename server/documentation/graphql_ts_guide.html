@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeScript API Tutorial - PromptParty</title>
+    <!-- Prism.js for syntax highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-graphql.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        .nav-bar {
+            background-color: white;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .nav-bar a {
+            color: #3498db;
+            font-weight: 500;
+        }
+        .nav-bar a:hover {
+            text-decoration: none;
+            opacity: 0.8;
+        }
+        .nav-bar .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-bar .separator {
+            color: #bdc3c7;
+        }
+        .content-wrapper {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 5px;
+        }
+        h3 {
+            color: #7f8c8d;
+            margin-top: 20px;
+        }
+        h4 {
+            color: #95a5a6;
+            margin-top: 15px;
+        }
+        pre {
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        code {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .footer-nav {
+            background-color: white;
+            padding: 15px 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .footer-nav a {
+            color: #3498db;
+            font-weight: 500;
+            padding: 8px 15px;
+        }
+        .footer-nav a:hover {
+            text-decoration: none;
+            opacity: 0.8;
+        }
+        .toc {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .toc-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+        .toc-header:hover {
+            color: #3498db;
+        }
+        .toc-toggle {
+            font-size: 0.8em;
+            color: #7f8c8d;
+            user-select: none;
+        }
+        .toc-arrow {
+            font-size: 0.8em;
+            color: #7f8c8d;
+            user-select: none;
+        }
+        .toc-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .toc-content.expanded {
+            max-height: 2000px;
+        }
+        .toc ul {
+            list-style: none;
+            margin: 0;
+            padding-left: 0;
+        }
+        .toc ul li {
+            margin: 5px 0;
+        }
+        .toc ul ul {
+            padding-left: 20px;
+        }
+        .toc ul ul ul {
+            padding-left: 20px;
+        }
+        .toc a {
+            color: #34495e;
+            display: block;
+            padding: 4px 0;
+        }
+        .toc a:hover {
+            color: #3498db;
+        }
+        .section {
+            margin-top: 40px;
+        }
+        .subsection {
+            margin-top: 20px;
+        }
+        .subsubsection {
+            margin-top: 10px;
+        }
+        .section-header {
+            cursor: pointer;
+            user-select: none;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .section-header:hover {
+            background-color: #f0f0f0;
+        }
+        .section-header.collapsed {
+            background-color: #e8e8e8;
+        }
+        .section-content {
+            max-height: 10000px;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out;
+        }
+        .section-content.collapsed {
+            max-height: 0;
+        }
+        .section h2,
+        .subsection h3,
+        .subsubsection h4 {
+            margin-top: 0 !important;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle table of contents
+            const tocHeader = document.getElementById('toc-header');
+            const tocContent = document.getElementById('toc-content');
+            const tocArrow = document.querySelector('.toc-arrow');
+            if (tocHeader && tocContent && tocArrow) {
+                tocHeader.addEventListener('click', function() {
+                    tocContent.classList.toggle('expanded');
+                    tocArrow.textContent = tocContent.classList.contains('expanded') ? '▼' : '▶';
+                });
+            }
+            
+            // Toggle sections
+            document.querySelectorAll('.section, .subsection, .subsubsection').forEach(function(section) {
+                const header = section.querySelector('.section-header');
+                const content = section.querySelector('.section-content');
+                
+                if (header && content) {
+                    header.addEventListener('click', function() {
+                        content.classList.toggle('collapsed');
+                        header.classList.toggle('collapsed');
+                    });
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="nav-bar">
+        <div class="breadcrumb">
+            <a href="homepage.html">← Documentation Home</a>
+            <span class="separator">|</span>
+            <span>TypeScript API Tutorial</span>
+        </div>
+    </div>
+    <div class="content-wrapper">
+<h1>TypeScript API Tutorial</h1>
+<p>This tutorial shows how to use the PromptParty API from TypeScript/JavaScript applications. The API provides both REST and GraphQL endpoints for user management and post functionality.</p>
+
+<div class="toc">
+    <div class="toc-header" id="toc-header">
+        <span>Table of Contents</span>
+        <span class="toc-arrow">▶</span>
+    </div>
+    <div class="toc-content" id="toc-content">
+        <ul>
+            <li><a href="#setup">Setup</a></li>
+            <li><a href="#api-config">API Configuration</a></li>
+            <li><a href="#type-definitions">Type Definitions</a></li>
+            <li><a href="#rest-api">REST API Usage</a>
+                <ul>
+                    <li><a href="#user-management">User Management</a>
+                        <ul>
+                            <li><a href="#register-user">Register a New User</a></li>
+                            <li><a href="#check-email">Check Email Availability</a></li>
+                            <li><a href="#check-username">Check Username Availability</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#post-management">Post Management</a>
+                        <ul>
+                            <li><a href="#create-post">Create a New Post</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#health-check">Health Check</a></li>
+                </ul>
+            </li>
+            <li><a href="#graphql-api">GraphQL API Usage</a>
+                <ul>
+                    <li><a href="#graphql-setup">Setup with graphql-request</a></li>
+                    <li><a href="#graphql-queries">GraphQL Query Functions</a>
+                        <ul>
+                            <li><a href="#get-all-posts">Get All Posts</a></li>
+                            <li><a href="#get-user-posts">Get User&#39;s Posts</a></li>
+                            <li><a href="#get-post-by-id">Get Post by ID</a></li>
+                            <li><a href="#get-user-info">Get User Information</a></li>
+                            <li><a href="#get-followers">Get Followers</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#graphql-mutations">GraphQL Mutation Functions</a>
+                        <ul>
+                            <li><a href="#create-post-gql">Create Post</a></li>
+                            <li><a href="#create-user-gql">Create User</a></li>
+                            <li><a href="#delete-user-gql">Delete User</a></li>
+                            <li><a href="#delete-post-gql">Delete Post</a></li>
+                            <li><a href="#add-like-gql">Add Like</a></li>
+                            <li><a href="#add-follow-gql">Add Follow</a></li>
+                            <li><a href="#update-post-gql">Update Post Field</a></li>
+                            <li><a href="#update-user-gql">Update User Field</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li><a href="#complete-class">Complete API Client Class</a></li>
+            <li><a href="#error-handling">Error Handling</a></li>
+        </ul>
+    </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+<h2 id="setup">Setup</h2>
+  </div>
+  <div class="section-content">
+<p>First, install the necessary dependencies:</p>
+<pre><code class="language-bash">npm install graphql-request
+# or for fetch-based GraphQL
+npm install @apollo/client graphql
+</code></pre>
+  </div>
+</div>
+<div class="section">
+  <div class="section-header">
+<h2 id="api-config">API Configuration</h2>
+  </div>
+  <div class="section-content">
+<p>The server runs on <code>http://localhost:8000</code> by default. Here&#39;s the basic configuration:</p>
+<pre><code class="language-typescript">const API_BASE_URL = &#39;http://localhost:8000&#39;;
+const GRAPHQL_URL = `${API_BASE_URL}/graphql`;
+</code></pre>
+  </div>
+</div>
+<div class="section">
+  <div class="section-header">
+<h2 id="type-definitions">Type Definitions</h2>
+  </div>
+  <div class="section-content">
+<p>Define the TypeScript interfaces based on your API models:</p>
+<pre><code class="language-typescript">// User types
+interface User {
+  userid: string;
+  username: string;
+  email: string;
+  profile_picture?: string;
+  bio?: string;
+}
+
+interface UserCreate {
+  username: string;
+  email: string;
+  password: string;
+  profile_picture?: string;
+  bio?: string;
+}
+
+// Post types
+interface Post {
+  postid: string;
+  content: string;
+  authorid: string;
+  date: string;
+  edited: boolean;
+  num_likes: number;
+}
+
+interface PostCreate {
+  content: string;
+  authorid: string;
+}
+
+// API response types
+interface ApiResponse&lt;T&gt; {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+</code></pre>
+  </div>
+</div>
+<div class="section">
+  <div class="section-header">
+<h2 id="rest-api">REST API Usage</h2>
+  </div>
+  <div class="section-content">
+<div class="subsection">
+  <div class="section-header">
+<h3 id="user-management">User Management</h3>
+  </div>
+  <div class="section-content">
+<div class="subsubsection">
+  <div class="section-header">
+<h4 id="register-user">Register a New User</h4>
+  </div>
+  <div class="section-content">
+<pre><code class="language-typescript">async function registerUser(userData: UserCreate): Promise&lt;User&gt; {
+  const response = await fetch(`${API_BASE_URL}/users/register`, {
+    method: &#39;POST&#39;,
+    headers: {
+      &#39;Content-Type&#39;: &#39;application/json&#39;,
+    },
+    body: JSON.stringify(userData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || &#39;Failed to register user&#39;);
+  }
+
+  const result = await response.json();
+  return result.user;
+}
+
+// Usage example
+try {
+  const newUser = await registerUser({
+    username: &#39;johndoe&#39;,
+    email: &#39;john@example.com&#39;,
+    password: &#39;securepassword&#39;,
+    profile_picture: &#39;https://example.com/avatar.jpg&#39;,
+    bio: &#39;Hello World!&#39;
+  });
+  console.log(&#39;User created:&#39;, newUser);
+} catch (error) {
+  console.error(&#39;Registration failed:&#39;, error.message);
+}
+</code></pre>
+  </div>
+</div>
+<div class="subsubsection">
+  <div class="section-header">
+<h4 id="check-email">Check Email Availability</h4>
+  </div>
+  <div class="section-content">
+<pre><code class="language-typescript">async function checkEmailExists(email: string): Promise&lt;boolean&gt; {
+  const response = await fetch(`${API_BASE_URL}/users/check-email/${encodeURIComponent(email)}`);
+  const result = await response.json();
+  return result.exists;
+}
+
+// Usage
+const emailAvailable = await checkEmailExists(&#39;john@example.com&#39;);
+console.log(&#39;Email available:&#39;, emailAvailable);
+</code></pre>
+  </div>
+</div>
+<div class="subsubsection">
+  <div class="section-header">
+<h4 id="check-username">Check Username Availability</h4>
+  </div>
+  <div class="section-content">
+<pre><code class="language-typescript">async function checkUsernameExists(username: string): Promise&lt;boolean&gt; {
+  const response = await fetch(`${API_BASE_URL}/users/check-username/${encodeURIComponent(username)}`);
+  const result = await response.json();
+  return result.exists;
+}
+</code></pre>
+  </div>
+</div>
+  </div>
+</div>
+<div class="subsection">
+  <div class="section-header">
+<h3 id="post-management">Post Management</h3>
+  </div>
+  <div class="section-content">
+<div class="subsubsection">
+  <div class="section-header">
+<h4 id="create-post">Create a New Post</h4>
+  </div>
+  <div class="section-content">
+<pre><code class="language-typescript">async function createPost(postData: PostCreate): Promise&lt;Post&gt; {
+  const response = await fetch(`${API_BASE_URL}/posts/create`, {
+    method: &#39;POST&#39;,
+    headers: {
+      &#39;Content-Type&#39;: &#39;application/json&#39;,
+    },
+    body: JSON.stringify(postData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || &#39;Failed to create post&#39;);
+  }
+
+  const result = await response.json();
+  return result.post || result;
+}
+
+// Usage example
+try {
+  const newPost = await createPost({
+    content: &#39;This is my first post!&#39;,
+    authorid: &#39;user-uuid-here&#39;
+  });
+  console.log(&#39;Post created:&#39;, newPost);
+} catch (error) {
+  console.error(&#39;Post creation failed:&#39;, error.message);
+}
+</code></pre>
+  </div>
+</div>
+  </div>
+</div>
+<div class="subsection">
+  <div class="section-header">
+<h3 id="health-check">Health Check</h3>
+  </div>
+  <div class="section-content">
+<pre><code class="language-typescript">async function checkApiHealth(): Promise&lt;boolean&gt; {
+  try {
+    const response = await fetch(`${API_BASE_URL}/health`);
+    const result = await response.json();
+    return result.status === &#39;healthy&#39;;
+  } catch (error) {
+    return false;
+  }
+}
+</code></pre>
+  </div>
+</div>
+  </div>
+</div>
+<div class="section">
+  <div class="section-header">
+<h2 id="graphql-api">GraphQL API Usage</h2>
+  </div>
+  <div class="section-content">
+<div class="subsection">
+  <div class="section-header">
+<h3 id="graphql-setup">Setup with graphql-request</h3>
+  </div>
+  <div class="section-content">
+<pre><code class="language-typescript">import { GraphQLClient, gql } from &#39;graphql-request&#39;;
+
+const client = new GraphQLClient(GRAPHQL_URL);
+
+// GraphQL type definitions for queries and mutations
+const GET_ALL_POSTS = gql`
+  query GetAllPosts {
+    allPosts {
+      postid
+      content
+      authorid
+      date
+      edited
+      numLikes
+    }
+  }
+`;
+
+const GET_USER_POSTS = gql`
+  query GetUserPosts($userid: String!) {
+    userPosts(userid: $userid) {
+      postid
+      content
+      authorid
+      date
+      edited
+      numLikes
+    }
+  }
+`;
+
+const GET_POST_BY_ID = gql`
+  query GetPostById($postid: String!) {
+    postById(postid: $postid) {
+      postid
+      content
+      authorid
+      date
+      edited
+      numLikes
+    }
+  }
+`;
+
+const CREATE_POST = gql`
+  mutation CreatePost($postData: PostInput!) {
+    createPost(postData: $postData) {
+      postid
+      content
+      authorid
+      date
+      edited
+      numLikes
+    }
+  }
+`;
+
+const CREATE_USER = gql`
+  mutation CreateUser($userData: UserInput!) {
+    createUser(userData: $userData) {
+      userid
+      username
+      email
+      profilePicture
+    }
+  }
+`;
+
+const GET_USER_BY_USERID = gql`
+  query GetUserByUserid($userid: String!) {
+    userByUserid(userid: $userid) {
+      userid
+      username
+      email
+      phone
+      profilePicture
+    }
+  }
+`;
+
+const GET_USERID_BY_USERNAME = gql`
+  query GetUseridByUsername($username: String!) {
+    useridByUsername(username: $username)
+  }
+`;
+
+const GET_FOLLOWERS = gql`
+  query GetFollowers($username: String!) {
+    getFollowers(username: $username) {
+      userid
+      username
+      email
+      profilePicture
+    }
+  }
+`;
+
+const DELETE_USER = gql`
+  mutation DeleteUser($userId: String!) {
+    deleteUser(userId: $userId) {
+      userid
+      username
+      email
+      profilePicture
+    }
+  }
+`;
+
+const DELETE_POST = gql`
+  mutation DeletePost($postId: String!) {
+    deletePost(postId: $postId) {
+      postid
+      content
+      authorid
+      date
+      edited
+      numLikes
+    }
+  }
+`;
+
+const ADD_LIKE = gql`
+  mutation AddLike($postData: PostInput!, $userData: UserInput!) {
+    addLike(postData: $postData, userData: $userData) {
+      postid
+      content
+      numLikes
+    }
+  }
+`;
+
+const ADD_FOLLOW = gql`
+  mutation AddFollow($user1Id: String!, $user2Id: String!) {
+    addFollow(user1Id: $user1Id, user2Id: $user2Id) {
+      userid
+      username
+      email
+      profilePicture
+    }
+  }
+`;
+
+const UPDATE_POST_FIELD = gql`
+  mutation UpdatePostField($postId: String!, $fieldToUpdate: String!, $update: String!) {
+    updatePostField(postId: $postId, fieldToUpdate: $fieldToUpdate, update: $update) {
+      postid
+      content
+      authorid
+      date
+      edited
+      numLikes
+    }
+  }
+`;
+
+const UPDATE_USER_FIELD = gql`
+  mutation UpdateUserField($userId: String!, $fieldToUpdate: String!, $update: String!) {
+    updateUserField(userId: $userId, fieldToUpdate: $fieldToUpdate, update: $update) {
+      userid
+      username
+      email
+      profilePicture
+    }
+  }
+`;
+</code></pre>
+  </div>
+</div>
+<div class="subsection">
+  <div class="section-header">
+<h3 id="graphql-queries">GraphQL Query Functions</h3>
+  </div>
+  <div class="section-content">
+<div class="subsubsection">
+  <div class="section-header">
+<h4 id="get-all-posts">Get All Posts</h4>
+  </div>
+  <div class="section-content">
+<pre><code class="language-typescript">async function getAllPosts(): Promise&lt;Post[]&gt; {
+  try {
+    const data = await client.request(GET_ALL_POSTS);
+    return data.allPosts;
+  } catch (error) {
+    console.error(&#39;Failed to fetch posts:&#39;, error);
+    throw error;
+  }
+}
+</code></pre>
+  </div>
+</div>
+<div class="subsubsection">
+  <div class="section-header">
+<h4 id="get-user-posts">Get User&#39;s Posts</h4>
+  </div>
+  <div class="section-content">
+<pre><code class="language-typescript">async function getUserPosts(userid: string): Promise&lt;Post[]&gt; {
+  try {
+    const data = await client.request(GET_USER_POSTS, { userid });
+    return data.userPosts;
+  } catch (error) {
+    console.error(&#39;Failed to fetch user posts:&#39;, error);
+    throw error;
+  }
+}
+
+// Usage
+const userPosts = await getUserPosts(&#39;user-uuid-here&#39;);
+console.log(&#39;User posts:&#39;, userPosts);
+</code></pre>
+  </div>
+</div>
+<div class="subsubsection">
+  <div class="section-header">
+<h4 id="get-post-by-id">Get Post by ID</h4>
+  </div>
+  <div class="section-content">
+<pre><code class="language-typescript">async function getPostById(postid: string): Promise&lt;Post | null&gt; {
+  try {
+    const data = await client.request(GET_POST_BY_ID, { postid });
+    return data.postById;
+  } catch (error) {
+    console.error(&#39;Failed to fetch post:&#39;, error);
+    return null;
+  }
+}
+</code></pre>
+  </div>
+</div>
+<div class="subsubsection">
+  <div class="section-header">
+<h4 id="get-user-info">Get User Information</h4>
+  </div>
+  <div class="section-content">
+<pre><code class="language-typescript">async function getUserByUserid(userid: string): Promise&lt;User | null&gt; {
+  try {
+    const data = await client.request(GET_USER_BY_USERID, { userid });
+    return data.userByUserid;
+  } catch (error) {
+    console.error(&#39;Failed to fetch user:&#39;, error);
+    return null;
+  }
+}
+
+async function getUseridByUsername(username: string): Promise&lt;string | null&gt; {
+  try {
+    const data = await client.request(GET_USERID_BY_USERNAME, { username });
+    return data.useridByUsername;
+  } catch (error) {
+    console.error(&#39;Failed to fetch user ID:&#39;, error);
+    return null;
+  }
+}
+
+// Usage
+const userid = await getUseridByUsername(&#39;johndoe&#39;);
+console.log(&#39;User ID:&#39;, userid);
+</code></pre>
+  </div>
+</div>
+<div class="subsubsection">
+  <div class="section-header">
+<h4 id="get-followers">Get Followers</h4>
+  </div>
+  <div class="section-content">
+<pre><code class="language-typescript">async function getFollowers(username: string): Promise&lt;User[]&gt; {
+  try {
+    const data = await client.request(GET_FOLLOWERS, { username });
+    return data.getFollowers || [];
+  } catch (error) {
+    console.error(&#39;Failed to fetch followers:&#39;, error);
+    return [];
+  }
+}
+
+// Usage
+const followers = await getFollowers(&#39;johndoe&#39;);
+console.log(&#39;Followers:&#39;, followers);
+</code></pre>
+<div class="note"><strong>Note:</strong> This query is currently being implemented.</div>
+  </div>
+</div>
+<div class="subsection">
+  <div class="section-header">
+<h3 id="graphql-mutations">GraphQL Mutation Functions</h3>
+  </div>
+  <div class="section-content">
+<div class="subsubsection">
+  <div class="section-header">
+<h4 id="create-post-gql">Create Post via GraphQL</h4>
+  </div>
+  <div class="section-content">
+<pre><code class="language-typescript">async function createPostGraphQL(postData: { content: string; authorid: string }): Promise&lt;Post | null&gt; {
+  try {
+    const data = await client.request(CREATE_POST, { postData });
+    return data.createPost;
+  } catch (error) {
+    console.error(&#39;Failed to create post:&#39;, error);
+    return null;
+  }
+}
+
+// Usage
+const newPost = await createPostGraphQL({
+  content: &#39;Hello GraphQL!&#39;,
+  authorid: &#39;user-uuid-here&#39;
+});
+</code></pre>
+  </div>
+</div>
+<div class="subsubsection">
+  <div class="section-header">
+<h4 id="create-user-gql">Create User via GraphQL</h4>
+  </div>
+  <div class="section-content">
+<pre><code class="language-typescript">async function createUserGraphQL(userData: UserCreate): Promise&lt;User | null&gt; {
+  try {
+    const data = await client.request(CREATE_USER, { userData });
+    return data.createUser;
+  } catch (error) {
+    console.error(&#39;Failed to create user:&#39;, error);
+    return null;
+  }
+}
+
+// Usage
+const newUser = await createUserGraphQL({
+  username: &#39;johndoe&#39;,
+  email: &#39;john@example.com&#39;,
+  password: &#39;securepassword&#39;,
+  profile_picture: &#39;https://example.com/avatar.jpg&#39;,
+  bio: &#39;Hello World!&#39;
+});
+</code></pre>
+  </div>
+</div>
+<div class="subsubsection">
+  <div class="section-header">
+<h4 id="delete-user-gql">Delete User via GraphQL</h4>
+  </div>
+  <div class="section-content">
+<pre><code class="language-typescript">async function deleteUserGraphQL(userId: string): Promise&lt;User | null&gt; {
+  try {
+    const data = await client.request(DELETE_USER, { userId });
+    return data.deleteUser;
+  } catch (error) {
+    console.error(&#39;Failed to delete user:&#39;, error);
+    return null;
+  }
+}
+
+// Usage
+const deletedUser = await deleteUserGraphQL(&#39;user-uuid-here&#39;);
+console.log(&#39;Deleted user:&#39;, deletedUser);
+</code></pre>
+  </div>
+</div>
+<div class="subsubsection">
+  <div class="section-header">
+<h4 id="delete-post-gql">Delete Post via GraphQL</h4>
+  </div>
+  <div class="section-content">
+<pre><code class="language-typescript">async function deletePostGraphQL(postId: string): Promise&lt;Post | null&gt; {
+  try {
+    const data = await client.request(DELETE_POST, { postId });
+    return data.deletePost;
+  } catch (error) {
+    console.error(&#39;Failed to delete post:&#39;, error);
+    return null;
+  }
+}
+
+// Usage
+const deletedPost = await deletePostGraphQL(&#39;post-uuid-here&#39;);
+console.log(&#39;Deleted post:&#39;, deletedPost);
+</code></pre>
+  </div>
+</div>
+<div class="subsubsection">
+  <div class="section-header">
+<h4 id="add-like-gql">Add Like via GraphQL</h4>
+  </div>
+  <div class="section-content">
+<pre><code class="language-typescript">async function addLikeGraphQL(
+  postData: { content: string; authorid: string },
+  userData: UserCreate
+): Promise&lt;Post | null&gt; {
+  try {
+    const data = await client.request(ADD_LIKE, { postData, userData });
+    return data.addLike;
+  } catch (error) {
+    console.error(&#39;Failed to add like:&#39;, error);
+    return null;
+  }
+}
+
+// Usage
+const likedPost = await addLikeGraphQL(
+  { content: &#39;Post content&#39;, authorid: &#39;author-uuid-here&#39; },
+  {
+    username: &#39;likerusername&#39;,
+    email: &#39;liker@example.com&#39;,
+    password: &#39;password&#39;
+  }
+);
+console.log(&#39;Post after like:&#39;, likedPost);
+</code></pre>
+  </div>
+</div>
+<div class="subsubsection">
+  <div class="section-header">
+<h4 id="add-follow-gql">Add Follow via GraphQL</h4>
+  </div>
+  <div class="section-content">
+<pre><code class="language-typescript">async function addFollowGraphQL(
+  followerId: string,
+  followedId: string
+): Promise&lt;User | null&gt; {
+  try {
+    const data = await client.request(ADD_FOLLOW, {
+      user1Id: followerId,
+      user2Id: followedId
+    });
+    return data.addFollow;
+  } catch (error) {
+    console.error(&#39;Failed to add follow:&#39;, error);
+    return null;
+  }
+}
+
+// Usage
+const followedUser = await addFollowGraphQL(&#39;follower-uuid-here&#39;, &#39;followed-uuid-here&#39;);
+console.log(&#39;Now following:&#39;, followedUser);
+</code></pre>
+  </div>
+</div>
+<div class="subsubsection">
+  <div class="section-header">
+<h4 id="update-post-gql">Update Post Field via GraphQL</h4>
+  </div>
+  <div class="section-content">
+<pre><code class="language-typescript">async function updatePostFieldGraphQL(
+  postId: string,
+  fieldToUpdate: string,
+  update: string
+): Promise&lt;Post | null&gt; {
+  try {
+    const data = await client.request(UPDATE_POST_FIELD, {
+      postId,
+      fieldToUpdate,
+      update
+    });
+    return data.updatePostField;
+  } catch (error) {
+    console.error(&#39;Failed to update post field:&#39;, error);
+    return null;
+  }
+}
+
+// Usage
+const updatedPost = await updatePostFieldGraphQL(
+  &#39;post-uuid-here&#39;,
+  &#39;content&#39;,
+  &#39;Updated post content&#39;
+);
+console.log(&#39;Updated post:&#39;, updatedPost);
+// Note: Cannot update &#39;postid&#39; or &#39;authorid&#39; fields
+</code></pre>
+  </div>
+</div>
+<div class="subsubsection">
+  <div class="section-header">
+<h4 id="update-user-gql">Update User Field via GraphQL</h4>
+  </div>
+  <div class="section-content">
+<pre><code class="language-typescript">async function updateUserFieldGraphQL(
+  userId: string,
+  fieldToUpdate: string,
+  update: string
+): Promise&lt;User | null&gt; {
+  try {
+    const data = await client.request(UPDATE_USER_FIELD, {
+      userId,
+      fieldToUpdate,
+      update
+    });
+    return data.updateUserField;
+  } catch (error) {
+    console.error(&#39;Failed to update user field:&#39;, error);
+    return null;
+  }
+}
+
+// Usage
+const updatedUser = await updateUserFieldGraphQL(
+  &#39;user-uuid-here&#39;,
+  &#39;bio&#39;,
+  &#39;Updated biography&#39;
+);
+console.log(&#39;Updated user:&#39;, updatedUser);
+// Can be used to update fields like &#39;bio&#39;, &#39;username&#39;, &#39;profile_picture&#39;, etc.
+</code></pre>
+  </div>
+</div>
+  </div>
+</div>
+  </div>
+</div>
+  </div>
+</div>
+<div class="section">
+  <div class="section-header">
+<h2 id="complete-class">Complete API Client Class</h2>
+  </div>
+  <div class="section-content">
+<p>Here&#39;s a complete TypeScript class that wraps all the API functionality:</p>
+<pre><code class="language-typescript">class PromptPartyAPI {
+  private baseUrl: string;
+  private graphqlClient: GraphQLClient;
+
+  constructor(baseUrl: string = &#39;http://localhost:8000&#39;) {
+    this.baseUrl = baseUrl;
+    this.graphqlClient = new GraphQLClient(`${baseUrl}/graphql`);
+  }
+
+  // REST API methods
+  async registerUser(userData: UserCreate): Promise&lt;User&gt; {
+    const response = await fetch(`${this.baseUrl}/users/register`, {
+      method: &#39;POST&#39;,
+      headers: { &#39;Content-Type&#39;: &#39;application/json&#39; },
+      body: JSON.stringify(userData),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || &#39;Failed to register user&#39;);
+    }
+
+    return (await response.json()).user;
+  }
+
+  async checkEmailExists(email: string): Promise&lt;boolean&gt; {
+    const response = await fetch(`${this.baseUrl}/users/check-email/${encodeURIComponent(email)}`);
+    return (await response.json()).exists;
+  }
+
+  async checkUsernameExists(username: string): Promise&lt;boolean&gt; {
+    const response = await fetch(`${this.baseUrl}/users/check-username/${encodeURIComponent(username)}`);
+    return (await response.json()).exists;
+  }
+
+  async createPost(postData: PostCreate): Promise&lt;Post&gt; {
+    const response = await fetch(`${this.baseUrl}/posts/create`, {
+      method: &#39;POST&#39;,
+      headers: { &#39;Content-Type&#39;: &#39;application/json&#39; },
+      body: JSON.stringify(postData),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || &#39;Failed to create post&#39;);
+    }
+
+    return await response.json();
+  }
+
+  // GraphQL methods
+  async getAllPosts(): Promise&lt;Post[]&gt; {
+    return await this.graphqlClient.request(GET_ALL_POSTS).then(data =&gt; data.allPosts);
+  }
+
+  async getUserPosts(userid: string): Promise&lt;Post[]&gt; {
+    return await this.graphqlClient.request(GET_USER_POSTS, { userid }).then(data =&gt; data.userPosts);
+  }
+
+  async getPostById(postid: string): Promise&lt;Post | null&gt; {
+    try {
+      return await this.graphqlClient.request(GET_POST_BY_ID, { postid }).then(data =&gt; data.postById);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async createPostGraphQL(postData: { content: string; authorid: string }): Promise&lt;Post | null&gt; {
+    try {
+      return await this.graphqlClient.request(CREATE_POST, { postData }).then(data =&gt; data.createPost);
+    } catch (error) {
+      console.error(&#39;GraphQL post creation failed:&#39;, error);
+      return null;
+    }
+  }
+
+  async getUserByUserid(userid: string): Promise&lt;User | null&gt; {
+    try {
+      return await this.graphqlClient.request(GET_USER_BY_USERID, { userid }).then(data =&gt; data.userByUserid);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async getUseridByUsername(username: string): Promise&lt;string | null&gt; {
+    try {
+      return await this.graphqlClient.request(GET_USERID_BY_USERNAME, { username }).then(data =&gt; data.useridByUsername);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async getFollowers(username: string): Promise&lt;User[]&gt; {
+    try {
+      return await this.graphqlClient.request(GET_FOLLOWERS, { username }).then(data =&gt; data.getFollowers || []);
+    } catch (error) {
+      return [];
+    }
+  }
+
+  async createUserGraphQL(userData: UserCreate): Promise&lt;User | null&gt; {
+    try {
+      return await this.graphqlClient.request(CREATE_USER, { userData }).then(data =&gt; data.createUser);
+    } catch (error) {
+      console.error(&#39;GraphQL user creation failed:&#39;, error);
+      return null;
+    }
+  }
+
+  async deleteUserGraphQL(userId: string): Promise&lt;User | null&gt; {
+    try {
+      return await this.graphqlClient.request(DELETE_USER, { userId }).then(data =&gt; data.deleteUser);
+    } catch (error) {
+      console.error(&#39;GraphQL user deletion failed:&#39;, error);
+      return null;
+    }
+  }
+
+  async deletePostGraphQL(postId: string): Promise&lt;Post | null&gt; {
+    try {
+      return await this.graphqlClient.request(DELETE_POST, { postId }).then(data =&gt; data.deletePost);
+    } catch (error) {
+      console.error(&#39;GraphQL post deletion failed:&#39;, error);
+      return null;
+    }
+  }
+
+  async addLikeGraphQL(postData: { content: string; authorid: string }, userData: UserCreate): Promise&lt;Post | null&gt; {
+    try {
+      return await this.graphqlClient.request(ADD_LIKE, { postData, userData }).then(data =&gt; data.addLike);
+    } catch (error) {
+      console.error(&#39;GraphQL like addition failed:&#39;, error);
+      return null;
+    }
+  }
+
+  async addFollowGraphQL(followerId: string, followedId: string): Promise&lt;User | null&gt; {
+    try {
+      return await this.graphqlClient.request(ADD_FOLLOW, { user1Id: followerId, user2Id: followedId }).then(data =&gt; data.addFollow);
+    } catch (error) {
+      console.error(&#39;GraphQL follow addition failed:&#39;, error);
+      return null;
+    }
+  }
+
+  async updatePostFieldGraphQL(postId: string, fieldToUpdate: string, update: string): Promise&lt;Post | null&gt; {
+    try {
+      return await this.graphqlClient.request(UPDATE_POST_FIELD, { postId, fieldToUpdate, update }).then(data =&gt; data.updatePostField);
+    } catch (error) {
+      console.error(&#39;GraphQL post update failed:&#39;, error);
+      return null;
+    }
+  }
+
+  async updateUserFieldGraphQL(userId: string, fieldToUpdate: string, update: string): Promise&lt;User | null&gt; {
+    try {
+      return await this.graphqlClient.request(UPDATE_USER_FIELD, { userId, fieldToUpdate, update }).then(data =&gt; data.updateUserField);
+    } catch (error) {
+      console.error(&#39;GraphQL user update failed:&#39;, error);
+      return null;
+    }
+  }
+
+  async checkHealth(): Promise&lt;boolean&gt; {
+    try {
+      const response = await fetch(`${this.baseUrl}/health`);
+      const result = await response.json();
+      return result.status === &#39;healthy&#39;;
+    } catch (error) {
+      return false;
+    }
+  }
+}
+
+// Usage
+const api = new PromptPartyAPI();
+
+// Example usage
+async function example() {
+  try {
+    // Check if API is healthy
+    const isHealthy = await api.checkHealth();
+    console.log(&#39;API Health:&#39;, isHealthy);
+
+    if (!isHealthy) throw new Error(&#39;API is not available&#39;);
+
+    // Register a new user
+    const newUser = await api.registerUser({
+      username: &#39;testuser&#39;,
+      email: &#39;test@example.com&#39;,
+      password: &#39;password123&#39;,
+      bio: &#39;Test user bio&#39;
+    });
+    console.log(&#39;Created user:&#39;, newUser);
+
+    // Create a post
+    const newPost = await api.createPost({
+      content: &#39;Hello from TypeScript!&#39;,
+      authorid: newUser.userid
+    });
+    console.log(&#39;Created post:&#39;, newPost);
+
+    // Get all posts via GraphQL
+    const allPosts = await api.getAllPosts();
+    console.log(&#39;All posts:&#39;, allPosts);
+
+    // Get user&#39;s posts
+    const userPosts = await api.getUserPosts(newUser.userid);
+    console.log(&#39;User posts:&#39;, userPosts);
+
+    // Update a post
+    if (newPost) {
+      const updatedPost = await api.updatePostFieldGraphQL(
+        newPost.postid,
+        &#39;content&#39;,
+        &#39;Updated content!&#39;
+      );
+      console.log(&#39;Updated post:&#39;, updatedPost);
+    }
+
+    // Add a like
+    if (newPost) {
+      const likedPost = await api.addLikeGraphQL(
+        { content: newPost.content, authorid: newPost.authorid },
+        {
+          username: &#39;anotheruser&#39;,
+          email: &#39;another@example.com&#39;,
+          password: &#39;password123&#39;
+        }
+      );
+      console.log(&#39;Post after like:&#39;, likedPost);
+    }
+
+  } catch (error) {
+    console.error(&#39;Error:&#39;, error.message);
+  }
+}
+</code></pre>
+  </div>
+</div>
+<div class="section">
+  <div class="section-header">
+<h2 id="error-handling">Error Handling</h2>
+  </div>
+  <div class="section-content">
+<p>Always wrap API calls in try-catch blocks and handle specific error cases:</p>
+<pre><code class="language-typescript">async function safeApiCall&lt;T&gt;(apiCall: () =&gt; Promise&lt;T&gt;): Promise&lt;T | null&gt; {
+  try {
+    return await apiCall();
+  } catch (error) {
+    console.error(&#39;API call failed:&#39;, error);
+    return null;
+  }
+}
+
+// Usage
+const posts = await safeApiCall(() =&gt; api.getAllPosts());
+if (posts) {
+  console.log(&#39;Posts loaded successfully&#39;);
+} else {
+  console.log(&#39;Failed to load posts&#39;);
+}
+</code></pre>
+<p>This tutorial covers all the main API endpoints and provides a solid foundation for integrating with the PromptParty API from TypeScript applications.</p>
+  </div>
+</div>
+    </div>
+    <div class="footer-nav">
+        <a href="homepage.html">← Back to Documentation Home</a>
+    </div>
+</body></html>
