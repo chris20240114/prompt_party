@@ -236,7 +236,7 @@ def find_replies(post: Post) -> List[str]:
             RETURN p2.postid AS postid
             ORDER BY p2.date DESC
         """,
-        userid=post.postid,
+        postid=post.postid,
         database_="neo4j",
     )
     return [r["postid"] for r in records]
