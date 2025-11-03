@@ -1,4 +1,4 @@
-# PromptParty API Server
+# PromptParty API Guide
 
 A FastAPI-based backend server for PromptParty, providing both REST and GraphQL APIs for user management and post functionality.
 
@@ -89,7 +89,9 @@ query {
   userPosts(userid: "user-uuid-here") {
     postid
     content
+    authorid
     date
+    edited
     numLikes
   }
 }
@@ -109,9 +111,38 @@ query {
 }
 ```
 
-**Get Userid from Username**
+**Get Userid from Username:**
+```graphql
+query {
+  useridByUsername(username: "johndoe")
+}
+```
 
-**Get User from Userid**
+**Get User from Userid:**
+```graphql
+query {
+  userByUserid(userid: "user-uuid-here") {
+    userid
+    username
+    email
+    phone
+    profilePicture
+  }
+}
+```
+
+**Get Followers:**
+```graphql
+query {
+  getFollowers(username: "johndoe") {
+    userid
+    username
+    email
+    profilePicture
+  }
+}
+```
+*Note: This query is currently being implemented.*
 
 #### Mutations
 
@@ -120,24 +151,133 @@ query {
 mutation {
   createPost(postData: {
     content: "Hello GraphQL!",
-    authorId: "user-uuid-here"
+    authorid: "user-uuid-here"
   }) {
     postid
     content
     authorid
     date
+    edited
     numLikes
   }
 }
 ```
 
-**Create User**
+**Create User:**
+```graphql
+mutation {
+  createUser(userData: {
+    username: "johndoe",
+    email: "john@example.com",
+    password: "securepassword",
+    profilePicture: "https://example.com/avatar.jpg",
+    bio: "Hello World!"
+  }) {
+    userid
+    username
+    email
+    profilePicture
+  }
+}
+```
 
-**Delete User**
+**Delete User:**
+```graphql
+mutation {
+  deleteUser(userId: "user-uuid-here") {
+    userid
+    username
+    email
+    profilePicture
+  }
+}
+```
 
-**Add Like**
+**Delete Post:**
+```graphql
+mutation {
+  deletePost(postId: "post-uuid-here") {
+    postid
+    content
+    authorid
+    date
+    edited
+    numLikes
+  }
+}
+```
 
-**Add Follow**
+**Add Like:**
+```graphql
+mutation {
+  addLike(
+    postData: {
+      content: "Post content",
+      authorid: "author-uuid-here"
+    },
+    userData: {
+      username: "likerusername",
+      email: "liker@example.com",
+      password: "password"
+    }
+  ) {
+    postid
+    content
+    numLikes
+  }
+}
+```
+
+**Add Follow:**
+```graphql
+mutation {
+  addFollow(
+    user1Id: "follower-uuid-here",
+    user2Id: "followed-uuid-here"
+  ) {
+    userid
+    username
+    email
+    profilePicture
+  }
+}
+```
+
+**Update Post Field:**
+```graphql
+mutation {
+  updatePostField(
+    postId: "post-uuid-here",
+    fieldToUpdate: "content",
+    update: "Updated post content"
+  ) {
+    postid
+    content
+    authorid
+    date
+    edited
+    numLikes
+  }
+}
+```
+*Note: Cannot update `postid` or `authorid` fields.*
+
+**Update User Field:**
+```graphql
+mutation {
+  updateUserField(
+    userId: "user-uuid-here",
+    fieldToUpdate: "bio",
+    update: "Updated biography"
+  ) {
+    userid
+    username
+    email
+    profilePicture
+  }
+}
+```
+*Note: Can be used to update fields like `bio`, `username`, `profile_picture`, etc.*
 
 ## Project Structure
 

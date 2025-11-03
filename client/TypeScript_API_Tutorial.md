@@ -207,7 +207,9 @@ const GET_USER_POSTS = gql`
     userPosts(userid: $userid) {
       postid
       content
+      authorid
       date
+      edited
       numLikes
     }
   }
@@ -233,14 +235,15 @@ const CREATE_POST = gql`
       content
       authorid
       date
+      edited
       numLikes
     }
   }
 `;
 
 const CREATE_USER = gql`
-  mutation CreateUser($postData: UserInput!) {
-    createUser(postData: $postData) {
+  mutation CreateUser($userData: UserInput!) {
+    createUser(userData: $userData) {
       userid
       username
       email
@@ -255,6 +258,7 @@ const GET_USER_BY_USERID = gql`
       userid
       username
       email
+      phone
       profilePicture
     }
   }
@@ -263,6 +267,86 @@ const GET_USER_BY_USERID = gql`
 const GET_USERID_BY_USERNAME = gql`
   query GetUseridByUsername($username: String!) {
     useridByUsername(username: $username)
+  }
+`;
+
+const GET_FOLLOWERS = gql`
+  query GetFollowers($username: String!) {
+    getFollowers(username: $username) {
+      userid
+      username
+      email
+      profilePicture
+    }
+  }
+`;
+
+const DELETE_USER = gql`
+  mutation DeleteUser($userId: String!) {
+    deleteUser(userId: $userId) {
+      userid
+      username
+      email
+      profilePicture
+    }
+  }
+`;
+
+const DELETE_POST = gql`
+  mutation DeletePost($postId: String!) {
+    deletePost(postId: $postId) {
+      postid
+      content
+      authorid
+      date
+      edited
+      numLikes
+    }
+  }
+`;
+
+const ADD_LIKE = gql`
+  mutation AddLike($postData: PostInput!, $userData: UserInput!) {
+    addLike(postData: $postData, userData: $userData) {
+      postid
+      content
+      numLikes
+    }
+  }
+`;
+
+const ADD_FOLLOW = gql`
+  mutation AddFollow($user1Id: String!, $user2Id: String!) {
+    addFollow(user1Id: $user1Id, user2Id: $user2Id) {
+      userid
+      username
+      email
+      profilePicture
+    }
+  }
+`;
+
+const UPDATE_POST_FIELD = gql`
+  mutation UpdatePostField($postId: String!, $fieldToUpdate: String!, $update: String!) {
+    updatePostField(postId: $postId, fieldToUpdate: $fieldToUpdate, update: $update) {
+      postid
+      content
+      authorid
+      date
+      edited
+      numLikes
+    }
+  }
+`;
+
+const UPDATE_USER_FIELD = gql`
+  mutation UpdateUserField($userId: String!, $fieldToUpdate: String!, $update: String!) {
+    updateUserField(userId: $userId, fieldToUpdate: $fieldToUpdate, update: $update) {
+      userid
+      username
+      email
+      profilePicture
+    }
   }
 `;
 ```
@@ -337,7 +421,30 @@ async function getUseridByUsername(username: string): Promise<string | null> {
     return null;
   }
 }
+
+// Usage
+const userid = await getUseridByUsername('johndoe');
+console.log('User ID:', userid);
 ```
+
+#### Get Followers
+
+```typescript
+async function getFollowers(username: string): Promise<User[]> {
+  try {
+    const data = await client.request(GET_FOLLOWERS, { username });
+    return data.getFollowers || [];
+  } catch (error) {
+    console.error('Failed to fetch followers:', error);
+    return [];
+  }
+}
+
+// Usage
+const followers = await getFollowers('johndoe');
+console.log('Followers:', followers);
+```
+*Note: This query is currently being implemented.*
 
 ### GraphQL Mutation Functions
 
@@ -366,13 +473,172 @@ const newPost = await createPostGraphQL({
 ```typescript
 async function createUserGraphQL(userData: UserCreate): Promise<User | null> {
   try {
-    const data = await client.request(CREATE_USER, { postData: userData });
+    const data = await client.request(CREATE_USER, { userData });
     return data.createUser;
   } catch (error) {
     console.error('Failed to create user:', error);
     return null;
   }
 }
+
+// Usage
+const newUser = await createUserGraphQL({
+  username: 'johndoe',
+  email: 'john@example.com',
+  password: 'securepassword',
+  profile_picture: 'https://example.com/avatar.jpg',
+  bio: 'Hello World!'
+});
+```
+
+#### Delete User via GraphQL
+
+```typescript
+async function deleteUserGraphQL(userId: string): Promise<User | null> {
+  try {
+    const data = await client.request(DELETE_USER, { userId });
+    return data.deleteUser;
+  } catch (error) {
+    console.error('Failed to delete user:', error);
+    return null;
+  }
+}
+
+// Usage
+const deletedUser = await deleteUserGraphQL('user-uuid-here');
+console.log('Deleted user:', deletedUser);
+```
+
+#### Delete Post via GraphQL
+
+```typescript
+async function deletePostGraphQL(postId: string): Promise<Post | null> {
+  try {
+    const data = await client.request(DELETE_POST, { postId });
+    return data.deletePost;
+  } catch (error) {
+    console.error('Failed to delete post:', error);
+    return null;
+  }
+}
+
+// Usage
+const deletedPost = await deletePostGraphQL('post-uuid-here');
+console.log('Deleted post:', deletedPost);
+```
+
+#### Add Like via GraphQL
+
+```typescript
+async function addLikeGraphQL(
+  postData: { content: string; authorid: string },
+  userData: UserCreate
+): Promise<Post | null> {
+  try {
+    const data = await client.request(ADD_LIKE, { postData, userData });
+    return data.addLike;
+  } catch (error) {
+    console.error('Failed to add like:', error);
+    return null;
+  }
+}
+
+// Usage
+const likedPost = await addLikeGraphQL(
+  { content: 'Post content', authorid: 'author-uuid-here' },
+  {
+    username: 'likerusername',
+    email: 'liker@example.com',
+    password: 'password'
+  }
+);
+console.log('Post after like:', likedPost);
+```
+
+#### Add Follow via GraphQL
+
+```typescript
+async function addFollowGraphQL(
+  followerId: string,
+  followedId: string
+): Promise<User | null> {
+  try {
+    const data = await client.request(ADD_FOLLOW, {
+      user1Id: followerId,
+      user2Id: followedId
+    });
+    return data.addFollow;
+  } catch (error) {
+    console.error('Failed to add follow:', error);
+    return null;
+  }
+}
+
+// Usage
+const followedUser = await addFollowGraphQL('follower-uuid-here', 'followed-uuid-here');
+console.log('Now following:', followedUser);
+```
+
+#### Update Post Field via GraphQL
+
+```typescript
+async function updatePostFieldGraphQL(
+  postId: string,
+  fieldToUpdate: string,
+  update: string
+): Promise<Post | null> {
+  try {
+    const data = await client.request(UPDATE_POST_FIELD, {
+      postId,
+      fieldToUpdate,
+      update
+    });
+    return data.updatePostField;
+  } catch (error) {
+    console.error('Failed to update post field:', error);
+    return null;
+  }
+}
+
+// Usage
+const updatedPost = await updatePostFieldGraphQL(
+  'post-uuid-here',
+  'content',
+  'Updated post content'
+);
+console.log('Updated post:', updatedPost);
+// Note: Cannot update 'postid' or 'authorid' fields
+```
+
+#### Update User Field via GraphQL
+
+```typescript
+async function updateUserFieldGraphQL(
+  userId: string,
+  fieldToUpdate: string,
+  update: string
+): Promise<User | null> {
+  try {
+    const data = await client.request(UPDATE_USER_FIELD, {
+      userId,
+      fieldToUpdate,
+      update
+    });
+    return data.updateUserField;
+  } catch (error) {
+    console.error('Failed to update user field:', error);
+    return null;
+  }
+}
+
+// Usage
+const updatedUser = await updateUserFieldGraphQL(
+  'user-uuid-here',
+  'bio',
+  'Updated biography'
+);
+console.log('Updated user:', updatedUser);
+// Can be used to update fields like 'bio', 'username', 'profile_picture', etc.
 ```
 
 ## Complete API Client Class
@@ -472,6 +738,77 @@ class PromptPartyAPI {
     }
   }
 
+  async getFollowers(username: string): Promise<User[]> {
+    try {
+      return await this.graphqlClient.request(GET_FOLLOWERS, { username }).then(data => data.getFollowers || []);
+    } catch (error) {
+      return [];
+    }
+  }
+
+  async createUserGraphQL(userData: UserCreate): Promise<User | null> {
+    try {
+      return await this.graphqlClient.request(CREATE_USER, { userData }).then(data => data.createUser);
+    } catch (error) {
+      console.error('GraphQL user creation failed:', error);
+      return null;
+    }
+  }
+
+  async deleteUserGraphQL(userId: string): Promise<User | null> {
+    try {
+      return await this.graphqlClient.request(DELETE_USER, { userId }).then(data => data.deleteUser);
+    } catch (error) {
+      console.error('GraphQL user deletion failed:', error);
+      return null;
+    }
+  }
+
+  async deletePostGraphQL(postId: string): Promise<Post | null> {
+    try {
+      return await this.graphqlClient.request(DELETE_POST, { postId }).then(data => data.deletePost);
+    } catch (error) {
+      console.error('GraphQL post deletion failed:', error);
+      return null;
+    }
+  }
+
+  async addLikeGraphQL(postData: { content: string; authorid: string }, userData: UserCreate): Promise<Post | null> {
+    try {
+      return await this.graphqlClient.request(ADD_LIKE, { postData, userData }).then(data => data.addLike);
+    } catch (error) {
+      console.error('GraphQL like addition failed:', error);
+      return null;
+    }
+  }
+
+  async addFollowGraphQL(followerId: string, followedId: string): Promise<User | null> {
+    try {
+      return await this.graphqlClient.request(ADD_FOLLOW, { user1Id: followerId, user2Id: followedId }).then(data => data.addFollow);
+    } catch (error) {
+      console.error('GraphQL follow addition failed:', error);
+      return null;
+    }
+  }
+
+  async updatePostFieldGraphQL(postId: string, fieldToUpdate: string, update: string): Promise<Post | null> {
+    try {
+      return await this.graphqlClient.request(UPDATE_POST_FIELD, { postId, fieldToUpdate, update }).then(data => data.updatePostField);
+    } catch (error) {
+      console.error('GraphQL post update failed:', error);
+      return null;
+    }
+  }
+
+  async updateUserFieldGraphQL(userId: string, fieldToUpdate: string, update: string): Promise<User | null> {
+    try {
+      return await this.graphqlClient.request(UPDATE_USER_FIELD, { userId, fieldToUpdate, update }).then(data => data.updateUserField);
+    } catch (error) {
+      console.error('GraphQL user update failed:', error);
+      return null;
+    }
+  }
+
   async checkHealth(): Promise<boolean> {
     try {
       const response = await fetch(`${this.baseUrl}/health`);
@@ -518,6 +855,29 @@ async function example() {
     // Get user's posts
     const userPosts = await api.getUserPosts(newUser.userid);
     console.log('User posts:', userPosts);
+
+    // Update a post
+    if (newPost) {
+      const updatedPost = await api.updatePostFieldGraphQL(
+        newPost.postid,
+        'content',
+        'Updated content!'
+      );
+      console.log('Updated post:', updatedPost);
+    }
+
+    // Add a like
+    if (newPost) {
+      const likedPost = await api.addLikeGraphQL(
+        { content: newPost.content, authorid: newPost.authorid },
+        {
+          username: 'anotheruser',
+          email: 'another@example.com',
+          password: 'password123'
+        }
+      );
+      console.log('Post after like:', likedPost);
+    }
 
   } catch (error) {
     console.error('Error:', error.message);

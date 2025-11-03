@@ -1,5 +1,5 @@
 from neo4j import GraphDatabase
-from torch import K
+#from torch import K
 
 from .imports import User, Post
 from typing import List
@@ -154,6 +154,7 @@ def add_reply(parent_post: Post, reply: Post):
     _, summary, _ = driver.execute_query(
         """ MATCH (p1:Post {postid: $postid1})
             MATCH (p2:Post {postid: $postid2})
+            SET p1.isReply = true
             CREATE (p1)-[:REPLIES]->(p2)
             CREATE (p2)-[:HASREPLY]->(p1)
         """,
@@ -220,6 +221,7 @@ def find_posts(user: User) -> List[str]:
     records, _, _ = driver.execute_query(
         """
             MATCH (u:User {userid: $userid})-[:POSTED]->(p:Post)
+            WHERE p.isReply = false
             RETURN p.postid AS postid
             ORDER BY p.date DESC
         """,
