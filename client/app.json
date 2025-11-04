@@ -1,7 +1,8 @@
 {
   "expo": {
     "name": "prompt-party",
-    "slug": "prompt-party",
+    "slug": "promptparty",
+    "slug": "promptparty",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -11,6 +12,8 @@
     "ios": {
       "supportsTablet": true
     },
+    "owner": "samikh-expo",
+    "owner": "samikh-expo",
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
@@ -37,6 +40,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "6ee77b24-f86d-496d-a4fd-f55f2b7e98d4"
+      }
+    },
+    "owner": "samikh-expo"
   }
 }
