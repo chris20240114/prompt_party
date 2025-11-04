@@ -8,6 +8,8 @@ import database.graph_db.graph as n4j
 
 from graphql_types import UserType, UserInput, PostType, PostInput
 from classes import User, Post, PostResponse, PostCreate, UserCreate, UserResponse
+import uuid
+
 
 # ---- Query Resolvers ----
 @strawberry.type
@@ -108,9 +110,60 @@ class Query:
             return None
         
     @strawberry.field
-    def get_followers(self, username: str) -> Optional[List[UserType]]:
-        #TODO Sarah, please implement this
-        return
+    async def get_friends(self, username: str) -> Optional[List[UserType]]:
+        """
+        Retrieves a list of friends (mutual followers) for the given username.
+        
+        A 'friend' is defined as a user who both follows and is followed by the given user.
+        This data comes from the Neo4j graph database.
+
+        Args:
+            username (str): The username whose friends to fetch.
+
+        Returns:
+            Optional[List[UserType]]: List of mutual friends as UserType objects, or None if error occurs.
+        """
+        try:
+            # get userid from Supabase
+            user_result = await sp.get_userid(username)
+            if not user_result or not user_result.get("success"):
+                raise GraphQLError(f"User '{username}' not found.")
+
+            userid = user_result["userid"]
+
+            # get full user data
+            user_data = await sp.get_user(userid)
+            if not user_data or not user_data.get("success"):
+                raise GraphQLError(f"User data for '{username}' could not be fetched.")
+
+            user = User(
+                userid=userid,
+                username=user_data["username"],
+                email=user_data["email"]
+            )
+
+            # get friend ids from Neo4j
+            friend_ids = n4j.find_friends(user)
+
+            friends = []
+            for fid in friend_ids:
+                friend_data = await sp.get_user(fid)
+                if friend_data.get("success"):
+                    friends.append(
+                        UserType(
+                            userid=friend_data["userid"],
+                            username=friend_data["username"],
+                            email=friend_data["email"],
+                            phone=None,
+                            profile_picture=friend_data.get("profile_picture"),
+                        )
+                    )
+
+            return friends
+
+        except Exception as e:
+            print("Error in get_friends:", e)
+            return None
 
     @strawberry.field
     async def user_by_userid(self, userid: str) -> Optional[UserType]:
@@ -401,7 +454,6 @@ class Mutation:
 
     @strawberry.mutation
     async def update_user_field(self, user_id: str, field_to_update: str, update: str) -> Optional[PostType]:
-        #TODO
         """
         Updates a user's field in the Supabase users table.
 
