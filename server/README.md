@@ -17,6 +17,8 @@ A FastAPI-based backend server for PromptParty, providing both REST and GraphQL 
    USE_NEO4J=false
    ```
 
+   If 'Unable to retrieve routing information' error, make sure URI starts with: neo4j+ssc://
+
 ## Running the Server
 
 ```bash
