@@ -494,7 +494,4 @@ class Mutation:
             bio=result.get("bio")
         )
 
-
-
-
 schema = strawberry.Schema(query=Query, mutation=Mutation)
