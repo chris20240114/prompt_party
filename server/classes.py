@@ -9,6 +9,7 @@ class User(BaseModel):
     email: EmailStr
     profile_picture: Optional[str] = None
     bio: Optional[str] = None
+    ranking: Optional[str] = ''
 
     def convert_UserType(self) -> gql.UserType:
       return gql.UserType(
@@ -45,6 +46,7 @@ class UserCreate(BaseModel):
   password: str
   profile_picture: Optional[str] = None
   bio: Optional[str] = None
+  ranking: Optional[str] = ''
 
 class UserResponse(User):
     pass

@@ -54,6 +54,7 @@ async def create_user(user_data: UserCreate) -> dict:
         response = supabase.auth.sign_up({
             "email": user_data.email,
             "password": user_data.password,
+            "ranking": user_data.ranking,
         })
 
         if not response.user:
