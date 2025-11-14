@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { View, Text, TextInput, Image, TouchableOpacity, ScrollView, SafeAreaView, Alert} from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
-import { profileStyles as styles } from "../../styles/profilestyles";
+import { useTheme } from "../../context/ThemeContext";
+import { createThemedStyles } from "../../styles/themedStyles";
+import { ThemeSwitcher } from "../../components/ThemeSwitcher";
 
 export default function ProfileScreen() {
+  const { styles: themeStyles } = useTheme();
+  const styles = useMemo(() => createThemedStyles(themeStyles), [themeStyles]);
   // Editable fields
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("");
@@ -87,6 +91,9 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* Theme Switcher - FOR TESTING ONLY */}
+      <ThemeSwitcher />
+
       <ScrollView contentContainerStyle={styles.container}>
 
         {/* Header with background color */}

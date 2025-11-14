@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { View, Text, Image, ScrollView, TouchableOpacity, SafeAreaView, TextInput } from "react-native";
-import { profileStyles as styles } from "../../styles/profilestyles";
 import { Link } from "expo-router";
 import { Feather, Ionicons } from "@expo/vector-icons";
+import { useTheme } from "../../context/ThemeContext";
+import { createThemedStyles } from "../../styles/themedStyles";
+import { ThemeSwitcher } from "../../components/ThemeSwitcher";
 
 export default function OtherProfileScreen() {
+  const { styles: themeStyles } = useTheme();
+  const styles = useMemo(() => createThemedStyles(themeStyles), [themeStyles]);
   const [promptResponse, setPromptResponse] = useState("");
   const [hasResponded, setHasResponded] = useState(false);
 
@@ -55,6 +59,9 @@ export default function OtherProfileScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* Theme Switcher - FOR TESTING ONLY */}
+      <ThemeSwitcher />
+
       <ScrollView contentContainerStyle={styles.container}>
 
       {/* Header / Banner */}

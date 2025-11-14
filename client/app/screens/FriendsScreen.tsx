@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, SafeAreaView, ScrollView, Image, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { friendsStyles as styles } from '../../styles/friendsstyles';
+import { useTheme } from '../../context/ThemeContext';
+import { createThemedStyles } from '../../styles/themedStyles';
+import { ThemeSwitcher } from '../../components/ThemeSwitcher';
 
 export default function FriendsScreen() {
+  const { styles: themeStyles } = useTheme();
+  const styles = useMemo(() => createThemedStyles(themeStyles), [themeStyles]);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Mock data - replace with real data from backend
@@ -38,6 +42,9 @@ export default function FriendsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* Theme Switcher - FOR TESTING ONLY */}
+      <ThemeSwitcher />
+
       <ScrollView style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
