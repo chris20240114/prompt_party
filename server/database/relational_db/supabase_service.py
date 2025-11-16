@@ -6,7 +6,7 @@ from supabase import create_client, Client
 
 from .imports import UserCreate, UserResponse, PostCreate, PostResponse
 
-from typing import Optional
+from typing import Optional, Any
 from datetime import datetime, timezone
 
 load_dotenv()
@@ -53,8 +53,7 @@ async def create_user(user_data: UserCreate) -> dict:
     try:
         response = supabase.auth.sign_up({
             "email": user_data.email,
-            "password": user_data.password,
-            "ranking": user_data.ranking,
+            "password": user_data.password
         })
 
         if not response.user:
@@ -69,7 +68,8 @@ async def create_user(user_data: UserCreate) -> dict:
             "username": user_data.username,
             "email": user_data.email,
             "profile_picture": user_data.profile_picture,
-            "bio": user_data.bio
+            "bio": user_data.bio,
+            "ranking": user_data.ranking
         }
 
         database_response = supabase.table("users").insert(record).execute()
@@ -81,7 +81,8 @@ async def create_user(user_data: UserCreate) -> dict:
                 username=user_data.username,
                 email=user_data.email,
                 profile_picture=user_data.profile_picture,
-                bio=user_data.bio
+                bio=user_data.bio,
+                ranking=user_data.ranking
             )
         }
     except Exception as e:
@@ -177,6 +178,37 @@ async def get_user_username(username: str) -> Optional[dict]:
     except Exception as e:
         print("Error finding username")
         return None
+    
+async def get_user_ranking(userid: str) -> dict:
+    """
+    Retrieves only the ranking dictionary for a given user by their user ID.
+
+    Args:
+        userid (str): The unique user ID to search for
+
+    Returns:
+        dict: Response dictionary containing:
+            - success (bool): Whether the operation was successful
+            - ranking (dict, optional): Ranking dictionary if found
+            - error (str, optional): Error message if unsuccessful
+    
+    Example:
+        >>> result = await get_user_ranking("123e4567-e89b-12d3-a456-426614174000")
+        >>> if result["success"]:
+        ...     print(result["ranking"])
+        >>> else:
+        ...     print(result["error"])
+    """
+    try:
+        response = supabase.table("users").select("ranking").eq("userid", userid).execute()
+        if response.data and len(response.data) > 0:
+            ranking = response.data[0].get("ranking", {})
+            return {"success": True, "ranking": ranking}
+        else:
+            return {"success": False, "error": "No such user exists"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
 
 async def get_user(userid: str) -> dict:
     """
@@ -268,7 +300,7 @@ async def delete_user(userid: str) -> dict:
     except Exception as e:
         return {"success": False, "error": str(e)}
 
-async def update_user_field(userid: str, field_to_update: str, update: str) -> dict:
+async def update_user_field(userid: str, field_to_update: str, update: Any) -> dict:
     """ Updates user on specified field 
     
     Args: 

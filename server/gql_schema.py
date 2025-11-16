@@ -156,6 +156,7 @@ class Query:
                             email=friend_data["email"],
                             phone=None,
                             profile_picture=friend_data.get("profile_picture"),
+                            ranking=friend_data.get("ranking")
                         )
                     )
 
@@ -192,7 +193,8 @@ class Query:
                 username=user_data.get("username", ""),
                 email=user_data.get("email", ""),
                 phone=None,
-                profile_picture=user_data.get("profile_picture")
+                profile_picture=user_data.get("profile_picture"),
+                ranking=user_data.get("ranking")
             )
         except GraphQLError:
             raise
@@ -373,7 +375,8 @@ class Mutation:
                 username=user_data.get("username", ""),
                 email=user_data.get("email", ""),
                 phone=None,
-                profile_picture=user_data.get("profile_picture")
+                profile_picture=user_data.get("profile_picture"),
+                ranking=user_data.get("ranking")
             )
         except GraphQLError:
             raise
@@ -491,7 +494,8 @@ class Mutation:
             username=result["username"],
             email=result["email"],
             profile_picture=result.get("profile_picture"),
-            bio=result.get("bio")
+            bio=result.get("bio"),
+            ranking=result.get("ranking")
         )
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)
