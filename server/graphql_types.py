@@ -45,8 +45,10 @@ class PostType:
     date: datetime
     edited: bool
     num_likes: int
+    promptid: Optional[str] = None
 
 @strawberry.input
 class PostInput:
     content: str
     authorid: str
+    promptid: Optional[str] = None
