@@ -1,5 +1,5 @@
 import strawberry
-from strawberry.exceptions import GraphQLError
+from graphql import GraphQLError
 
 from typing import List, Optional
 
@@ -313,7 +313,7 @@ class Mutation:
             await sp.update_like_count(post)
 
 
-            return post.convert_PostType
+            return post.convert_PostType()
         except Exception as e:
             print("Error in adding like:", e)
             return
@@ -413,12 +413,12 @@ class Mutation:
             n4j.delete_post(post)
 
             return PostType(
-                post=post_data.get("postid", ""),
+                postid=post_data.get("postid", ""),
                 content=post_data.get("content", ""),
                 authorid=post_data.get("authorid", ""),
                 date=post_data.get("date", ""),
-                edited=post.get("edited", ""),
-                num_likes=post.get("num_likes", "")
+                edited=post_data.get("edited", ""),
+                num_likes=post_data.get("num_likes", "")
             )
         except GraphQLError:
             raise
@@ -472,7 +472,7 @@ class Mutation:
 
 
     @strawberry.mutation
-    async def update_user_field(self, user_id: str, field_to_update: str, update: str) -> Optional[PostType]:
+    async def update_user_field(self, user_id: str, field_to_update: str, update: str) -> Optional[UserType]:
         """
         Updates a user's field in the Supabase users table.
 
@@ -493,8 +493,8 @@ class Mutation:
             userid=result["userid"],
             username=result["username"],
             email=result["email"],
+            phone = None,
             profile_picture=result.get("profile_picture"),
-            bio=result.get("bio"),
             ranking=result.get("ranking")
         )
 
