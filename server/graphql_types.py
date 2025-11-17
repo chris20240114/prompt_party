@@ -1,6 +1,6 @@
 import strawberry
 
-from typing import Optional
+from typing import Optional, Dict
 from datetime import datetime
 
 @strawberry.type
@@ -10,6 +10,7 @@ class UserType:
     email: str
     phone: Optional[str] = None
     profile_picture: Optional[str] = None
+    ranking: Optional[Dict[str, int]] = None
 
 @strawberry.input
 class UserInput:

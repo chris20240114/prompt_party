@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, Dict
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 import graphql_types as gql
@@ -9,6 +9,7 @@ class User(BaseModel):
     email: EmailStr
     profile_picture: Optional[str] = None
     bio: Optional[str] = None
+    ranking: Optional[Dict[str, int]] = None
 
     def convert_UserType(self) -> gql.UserType:
       return gql.UserType(
@@ -16,7 +17,8 @@ class User(BaseModel):
           username=self.username, 
           email=str(self.email), 
           phone=None, 
-          profile_picture=self.profile_picture
+          profile_picture=self.profile_picture,
+          ranking=self.ranking
       )
 
 class Post(BaseModel):
@@ -45,6 +47,7 @@ class UserCreate(BaseModel):
   password: str
   profile_picture: Optional[str] = None
   bio: Optional[str] = None
+  ranking: Optional[Dict[str, int]] = None
 
 class UserResponse(User):
     pass
