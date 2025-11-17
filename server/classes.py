@@ -57,6 +57,7 @@ class UserResponse(User):
 class PostCreate(BaseModel):
   content: str
   authorid: str
+  promptid: Optional[str] = None
 
 class PostResponse(Post):
     pass
