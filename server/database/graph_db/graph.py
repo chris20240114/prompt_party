@@ -255,6 +255,38 @@ def find_replies(post: Post) -> List[str]:
     return [r["postid"] for r in records]
 
 
+#Implement graphql service that retrieves past prompts.
+
+def past_prompts(user: User) -> List[str]:
+    """ Returns a list of past prompts used by the user"""
+    records, _, _ = driver.execute_query(
+        """
+            MATCH (u:User {userid: $userid})-[:USED_PROMPT]->(pr:Prompt)
+            RETURN pr.promptid AS promptid
+            ORDER BY pr.date DESC
+        """,
+        userid=user.userid,
+        database_="neo4j",
+    )
+    print(f"[AuraDB] Found {len(records)} past prompts")
+    return [r["promptid"] for r in records]
+
+
+#Implement grapqhl service that retrieves replies from the prompts.
+
+def replies_from_prompt(promptid: str) -> List[str]:
+    """ Returns a list of the postids of replies generated from a prompt"""
+    records, _, _ = driver.execute_query(
+        """
+            MATCH (pr:Prompt {promptid: $promptid})-[:GENERATED_REPLY]->(p:Post)
+            RETURN p.postid AS postid
+            ORDER BY p.date DESC
+        """,
+        promptid=promptid,
+        database_="neo4j",
+    )
+    print(f"[AuraDB] Found {len(records)} replies from prompt")
+    return [r["postid"] for r in records]
 
 def main():
     u2 = User("1", "user1", "email1@email.com", "124")
