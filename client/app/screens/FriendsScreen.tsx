@@ -3,7 +3,6 @@ import { View, Text, SafeAreaView, ScrollView, Image, TouchableOpacity, TextInpu
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
 import { createThemedStyles } from '../../styles/themedStyles';
-import { ThemeSwitcher } from '../../components/ThemeSwitcher';
 
 export default function FriendsScreen() {
   const { styles: themeStyles } = useTheme();
@@ -40,33 +39,44 @@ export default function FriendsScreen() {
     // Implement remove suggestion logic
   };
 
+  // Filter users based on search query
+  const filterUsers = (users: any[]) => {
+    if (!searchQuery.trim()) return users;
+
+    const query = searchQuery.toLowerCase();
+    return users.filter(user =>
+      user.name.toLowerCase().includes(query) ||
+      user.username.toLowerCase().includes(query)
+    );
+  };
+
+  const filteredRecentFollowers = useMemo(() => filterUsers(recentFollowers), [searchQuery]);
+  const filteredSuggestions = useMemo(() => filterUsers(suggestions), [searchQuery]);
+  const filteredPeopleYouMayKnow = useMemo(() => filterUsers(peopleYouMayKnow), [searchQuery]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Theme Switcher - FOR TESTING ONLY */}
-      <ThemeSwitcher />
-
       <ScrollView style={styles.container}>
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Friends</Text>
-        </View>
+        <Text style={styles.headerTitle}>Friends</Text>
 
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
+          <Ionicons name="search" size={20} color="#8b92a0" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search friends..."
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholderTextColor="#999"
+            placeholderTextColor="#8b92a0"
           />
         </View>
 
         {/* Recent Followers Section */}
+        {filteredRecentFollowers.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recent Followers</Text>
-          {recentFollowers.map((user) => (
+          {filteredRecentFollowers.map((user) => (
             <View key={user.id} style={styles.userCard}>
               <Image source={{ uri: user.avatar }} style={styles.avatar} />
               <View style={styles.userInfo}>
@@ -84,11 +94,13 @@ export default function FriendsScreen() {
             </View>
           ))}
         </View>
+        )}
 
         {/* Suggestions Section */}
+        {filteredSuggestions.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Suggestions For You</Text>
-          {suggestions.map((user) => (
+          {filteredSuggestions.map((user) => (
             <View key={user.id} style={styles.userCard}>
               <Image source={{ uri: user.avatar }} style={styles.avatar} />
               <View style={styles.userInfo}>
@@ -115,11 +127,13 @@ export default function FriendsScreen() {
             </View>
           ))}
         </View>
+        )}
 
         {/* People You May Know Section */}
+        {filteredPeopleYouMayKnow.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>People You May Know</Text>
-          {peopleYouMayKnow.map((user) => (
+          {filteredPeopleYouMayKnow.map((user) => (
             <View key={user.id} style={styles.userCard}>
               <Image source={{ uri: user.avatar }} style={styles.avatar} />
               <View style={styles.userInfo}>
@@ -138,6 +152,21 @@ export default function FriendsScreen() {
             </View>
           ))}
         </View>
+        )}
+
+        {/* No Results Message */}
+        {searchQuery.trim() !== '' &&
+         filteredRecentFollowers.length === 0 &&
+         filteredSuggestions.length === 0 &&
+         filteredPeopleYouMayKnow.length === 0 && (
+          <View style={styles.noResultsContainer}>
+            <Ionicons name="search-outline" size={48} color="#8b92a0" />
+            <Text style={styles.noResultsText}>No results found</Text>
+            <Text style={styles.noResultsSubtext}>
+              Try searching for a different name or username
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
