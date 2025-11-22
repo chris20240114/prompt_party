@@ -28,6 +28,7 @@ class Post(BaseModel):
     date: datetime
     edited: bool
     num_likes: int
+    promptid: Optional[str] = None
 
     def convert_PostType(self) -> gql.PostType:
       return gql.PostType(
@@ -36,7 +37,8 @@ class Post(BaseModel):
           authorid=self.authorid,
           date=self.date,
           edited=self.edited,
-          num_likes=self.num_likes
+          num_likes=self.num_likes,
+          promptid=self.promptid
       )
 
 #Models for Supabase
@@ -55,6 +57,7 @@ class UserResponse(User):
 class PostCreate(BaseModel):
   content: str
   authorid: str
+  promptid: Optional[str] = None
 
 class PostResponse(Post):
     pass

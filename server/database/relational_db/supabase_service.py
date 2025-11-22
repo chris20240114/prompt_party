@@ -382,7 +382,8 @@ async def create_post(post_data: PostCreate) -> dict:
             "authorid": post_data.authorid,
             "date": datetime.now(timezone.utc).isoformat(),
             "edited": False,
-            "num_likes": 0
+            "num_likes": 0,
+            "promptid": post_data.promptid
         }
         response = supabase.table("posts").insert(record).execute()
         if response.data is None or len(response.data) == 0:
@@ -395,7 +396,8 @@ async def create_post(post_data: PostCreate) -> dict:
                 authorid=post_data.authorid,
                 date=record["date"],
                 edited=False,
-                num_likes=0
+                num_likes=0,
+                promptid=post_data.promptid
             )
         }
     except Exception as e:
