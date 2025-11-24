@@ -561,3 +561,23 @@ async def update_like_count(post):
     except Exception as e:
         print("Error updating like count:", e)
         return {"success": False, "error": str(e)}
+    
+async def get_posts_by_promptid(promptid: str, k: int):
+    """
+    Returns a list of up to k posts with the given promptid.
+    """
+    try:
+        response = (
+            supabase
+            .table("posts")
+            .select("*")
+            .eq("promptid", promptid)
+            .limit(k)
+            .execute()
+        )
+
+        return response.data or []
+
+    except Exception as e:
+        print("Supabase error fetching posts by promptid:", e)
+        return []

@@ -80,6 +80,27 @@ class Query:
         p = result["post"]
         return PostType(**p)
 
+    @strawberry.field
+    async def post_by_promptid(self, promptid: str, k: int) -> Optional[List[PostType]]:
+        """
+        Retrieves up to k posts that share the same promptid.
+        """
+        posts = await sp.get_posts_by_promptid(promptid, k)
+
+        if posts is None:
+            return []
+
+        return [
+            PostType(
+                postid=p["postid"],
+                content=p["content"],
+                authorid=p["author_id"],
+                date=p["date"],
+                edited=p["edited"],
+                num_likes=p["num_likes"],
+            )
+            for p in posts
+        ]
 
     @strawberry.field
     async def userid_by_username(self, username: str) -> Optional[str]:
