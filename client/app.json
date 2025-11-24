@@ -37,10 +37,6 @@
           "backgroundColor": "#ffffff"
         }
       ],
-<<<<<<< HEAD
-=======
-      "expo-font",
->>>>>>> backend
       "expo-web-browser"
     ],
     "experiments": {
