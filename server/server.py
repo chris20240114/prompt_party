@@ -24,7 +24,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-#app.mount("/src/", StaticFiles(directory="./documentation"), name="graphql_docs")
+app.mount("/src/", StaticFiles(directory="./documentation"), name="graphql_docs")
 
 # Include REST routers
 app.include_router(user_router)
