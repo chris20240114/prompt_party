@@ -28,12 +28,12 @@ export default function App() {
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#000',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: '#4a9eff',
+        tabBarInactiveTintColor: '#8b92a0',
         tabBarStyle: {
-          backgroundColor: 'white',
-          borderTopWidth: 0.5,
-          borderTopColor: '#ddd',
+          backgroundColor: '#1a1f29',
+          borderTopWidth: 1,
+          borderTopColor: '#2d3541',
           height: 60,
           paddingBottom: 5,
         },

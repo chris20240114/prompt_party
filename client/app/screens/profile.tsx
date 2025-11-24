@@ -1,12 +1,29 @@
 import { useState, useMemo } from "react";
-import { View, Text, TextInput, Image, TouchableOpacity, ScrollView, SafeAreaView, Alert} from "react-native";
+import { View, Text, TextInput, Image, TouchableOpacity, ScrollView, SafeAreaView, Alert, Modal} from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useTheme } from "../../context/ThemeContext";
 import { createThemedStyles } from "../../styles/themedStyles";
-import { ThemeSwitcher } from "../../components/ThemeSwitcher";
+
+// Preset color options for banner
+const BANNER_COLORS = [
+  "#6c63ff", // Purple
+  "#4a9eff", // Blue
+  "#ff6b6b", // Red
+  "#ff8c42", // Orange
+  "#51cf66", // Green
+  "#ff6ac1", // Pink
+  "#ffd43b", // Yellow
+  "#20c997", // Teal
+  "#845ef7", // Violet
+  "#1c7ed6", // Dark Blue
+  "#e64980", // Magenta
+  "#37b24d", // Dark Green
+];
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const { styles: themeStyles } = useTheme();
   const styles = useMemo(() => createThemedStyles(themeStyles), [themeStyles]);
   // Editable fields
@@ -14,6 +31,7 @@ export default function ProfileScreen() {
   const [displayName, setDisplayName] = useState("");
   const [bgColor, setBgColor] = useState("#6c63ff");
   const [customPrompt, setCustomPrompt] = useState("");
+  const [showColorPicker, setShowColorPicker] = useState(false);
 
   // Non-editable fields
   const email = "user@example.com";
@@ -91,13 +109,26 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Theme Switcher - FOR TESTING ONLY */}
-      <ThemeSwitcher />
-
       <ScrollView contentContainerStyle={styles.container}>
 
         {/* Header with background color */}
         <View style={[styles.header, { backgroundColor: bgColor }]}>
+
+          {/* Back Button */}
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+
+          {/* Color Picker Button */}
+          <TouchableOpacity
+            style={styles.colorPickerButton}
+            onPress={() => setShowColorPicker(true)}
+          >
+            <Ionicons name="color-palette" size={20} color="#fff" />
+          </TouchableOpacity>
 
           {/* Streak Badge (Read-only) */}
           <View style={styles.streakBadge}>
@@ -122,10 +153,11 @@ export default function ProfileScreen() {
 
         {/* Editable display name */}
         <TextInput
-          style={styles.input}
+          style={styles.displayNameInput}
           placeholder="Display name"
           value={displayName}
           onChangeText={setDisplayName}
+          placeholderTextColor="#8b92a0"
         />
 
         {/* Non-editable username */}
@@ -152,6 +184,7 @@ export default function ProfileScreen() {
           <TextInput
             style={styles.promptInput}
             placeholder="e.g., What's your favorite quote?"
+            placeholderTextColor="#a0a8b0"
             value={customPrompt}
             onChangeText={setCustomPrompt}
             multiline
@@ -204,6 +237,50 @@ export default function ProfileScreen() {
         </TouchableOpacity>
 
       </ScrollView>
+
+      {/* Color Picker Modal */}
+      <Modal
+        visible={showColorPicker}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowColorPicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.colorPickerOverlay}
+          activeOpacity={1}
+          onPress={() => setShowColorPicker(false)}
+        >
+          <View style={styles.colorPickerModal}>
+            <Text style={styles.colorPickerTitle}>Choose Banner Color</Text>
+            <View style={styles.colorGrid}>
+              {BANNER_COLORS.map((color) => (
+                <TouchableOpacity
+                  key={color}
+                  style={[
+                    styles.colorOption,
+                    { backgroundColor: color },
+                    bgColor === color && styles.selectedColorOption
+                  ]}
+                  onPress={() => {
+                    setBgColor(color);
+                    setShowColorPicker(false);
+                  }}
+                >
+                  {bgColor === color && (
+                    <Ionicons name="checkmark" size={24} color="#fff" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TouchableOpacity
+              style={styles.colorPickerCloseButton}
+              onPress={() => setShowColorPicker(false)}
+            >
+              <Text style={styles.colorPickerCloseText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }

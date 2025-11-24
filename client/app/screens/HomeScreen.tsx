@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from "react";
 import { View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Link } from "expo-router";
 import { useTheme } from "../../context/ThemeContext";
 import { createThemedStyles } from "../../styles/themedStyles";
-import { ThemeSwitcher } from "../../components/ThemeSwitcher";
 
 export default function HomeScreen() {
   const { styles: themeStyles } = useTheme();
@@ -12,48 +13,34 @@ export default function HomeScreen() {
   const [todayPrompt] = useState("What inspired you today?");
   const [userResponse, setUserResponse] = useState("");
   const [hasResponded, setHasResponded] = useState(false);
-  const [showPastPrompts, setShowPastPrompts] = useState(false);
   const [likes, setLikes] = useState<{ [key: string]: boolean }>({});
   const [replyingTo, setReplyingTo] = useState<{ id: string; username: string } | null>(null);
   const [replyText, setReplyText] = useState("");
   const [replies, setReplies] = useState<{ [key: string]: Array<{ username: string; text: string }> }>({});
 
-  // Example friend replies and past prompts
+  // Example friend replies
   const friendsReplies = [
-    { id: "1", username: "alice", reply: "Seeing the sunrise 🌅", likes: 2 },
-    { id: "2", username: "bob", reply: "My morning run!", likes: 5 },
-    { id: "3", username: "charlie", reply: "A random act of kindness 💙", likes: 3 },
+    { id: "1", username: "alice", reply: "Seeing the sunrise 🌅", likes: 2, isFriend: true },
+    { id: "2", username: "bob", reply: "My morning run!", likes: 5, isFriend: true },
+    { id: "3", username: "charlie", reply: "A random act of kindness 💙", likes: 3, isFriend: true },
   ];
 
-  const pastPrompts = [
-    {
-      date: "Jan 9, 2025",
-      prompt: "What made you smile yesterday?",
-      yourReply: "My dog being goofy 🐶",
-      friendsReplies: [
-        { id: "p1-1", username: "alice", reply: "Got a surprise call from an old friend", likes: 4 },
-        { id: "p1-2", username: "bob", reply: "Found $20 in my jacket pocket!", likes: 7 },
-      ]
-    },
-    {
-      date: "Jan 8, 2025",
-      prompt: "If you could go anywhere right now?",
-      yourReply: "Tokyo 🇯🇵",
-      friendsReplies: [
-        { id: "p2-1", username: "charlie", reply: "Iceland to see the northern lights", likes: 6 },
-        { id: "p2-2", username: "alice", reply: "Back home to visit family", likes: 3 },
-      ]
-    },
-    {
-      date: "Jan 7, 2025",
-      prompt: "What's your favorite way to unwind?",
-      yourReply: "Reading a good book with tea",
-      friendsReplies: [
-        { id: "p3-1", username: "bob", reply: "Playing video games", likes: 5 },
-        { id: "p3-2", username: "charlie", reply: "Going for a walk in nature", likes: 8 },
-      ]
-    },
+  // Example all replies (including non-friends for popular section)
+  const allReplies = [
+    ...friendsReplies,
+    { id: "4", username: "david", reply: "Reading an amazing book", likes: 12, isFriend: false },
+    { id: "5", username: "emma", reply: "Trying a new recipe", likes: 8, isFriend: false },
+    { id: "6", username: "frank", reply: "A walk in the park", likes: 15, isFriend: false },
   ];
+
+  // Get popular replies sorted by likes
+  const popularReplies = useMemo(() => {
+    return [...allReplies].sort((a, b) => {
+      const aLikes = a.likes + (likes[a.id] ? 1 : 0);
+      const bLikes = b.likes + (likes[b.id] ? 1 : 0);
+      return bLikes - aLikes;
+    }).slice(0, 5); // Top 5 most liked
+  }, [likes, allReplies]);
 
   const handleSubmit = () => {
     if (userResponse.trim() === "") return alert("Please write your response!");
@@ -87,223 +74,158 @@ export default function HomeScreen() {
     setReplyingTo(null);
   };
 
+  const renderReplyCard = (item: any) => (
+    <View key={item.id} style={styles.replyBox}>
+      <Text style={styles.friendName}>
+        {item.username === "user" ? "Your response" : `@${item.username}`}
+      </Text>
+      <Text style={styles.friendReply}>{item.reply}</Text>
+
+      {/* Like and Reply buttons */}
+      <View style={styles.replyActions}>
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() => handleLike(item.id)}
+        >
+          <Ionicons
+            name={likes[item.id] ? "heart" : "heart-outline"}
+            size={18}
+            color={likes[item.id] ? "#FF6B6B" : "#8b92a0"}
+          />
+          <Text style={styles.actionText}>
+            {item.likes + (likes[item.id] ? 1 : 0)}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() => handleReply(item.id, item.username)}
+        >
+          <Ionicons name="chatbubble-outline" size={16} color="#8b92a0" />
+          <Text style={styles.actionText}>Reply</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Display existing replies */}
+      {replies[item.id] && replies[item.id].length > 0 && (
+        <View style={styles.repliesContainer}>
+          {replies[item.id].map((reply, idx) => (
+            <View key={idx} style={styles.replyItem}>
+              <Text style={styles.replyUsername}>@{reply.username}</Text>
+              <Text style={styles.replyTextDisplay}>{reply.text}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {/* Reply Input */}
+      {replyingTo?.id === item.id && (
+        <View style={styles.replyInputContainer}>
+          <TextInput
+            style={styles.replyInput}
+            placeholder={`Reply to @${item.username}...`}
+            placeholderTextColor="#a0a8b0"
+            value={replyText}
+            onChangeText={setReplyText}
+            multiline
+          />
+          <View style={styles.replyInputActions}>
+            <TouchableOpacity
+              style={styles.replyCancel}
+              onPress={() => setReplyingTo(null)}
+            >
+              <Text style={styles.replyCancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.replySend}
+              onPress={handleSendReply}
+            >
+              <Text style={styles.replySendText}>Send</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Theme Switcher - FOR TESTING ONLY */}
-      <ThemeSwitcher />
-
       <ScrollView contentContainerStyle={styles.container}>
-        {/* Daily Prompt - Primary Focus */}
-        <View style={!hasResponded ? styles.promptContainerFull : styles.promptContainerNormal}>
-          <Text style={styles.promptTitle}>Today's Prompt</Text>
-          <View style={styles.promptBox}>
-            <Text style={styles.promptText}>{todayPrompt}</Text>
+        {/* Daily Prompt - Only show before responding */}
+        {!hasResponded && (
+          <View style={styles.promptContainerFull}>
+            <Text style={styles.promptTitle}>Prompt Party!</Text>
+            <View style={styles.promptBox}>
+              <Text style={styles.promptText}>{todayPrompt}</Text>
 
-            {!hasResponded && (
               <Text style={styles.friendsWaiting}>
                 {friendsReplies.length} of your friends have already responded
               </Text>
-            )}
 
-            <TextInput
-              style={styles.input}
-              placeholder="Share your response..."
-              value={userResponse}
-              onChangeText={setUserResponse}
-              multiline
-              editable={!hasResponded}
-            />
+              <TextInput
+                style={styles.input}
+                placeholder="Share your response..."
+                placeholderTextColor="#a0a8b0"
+                value={userResponse}
+                onChangeText={setUserResponse}
+                multiline
+              />
 
-            {!hasResponded && (
               <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
                 <Text style={styles.submitButtonText}>Submit</Text>
               </TouchableOpacity>
-            )}
+            </View>
+          </View>
+        )}
 
-            {hasResponded && (
-              <View style={styles.submittedIndicator}>
-                <Text style={styles.submittedText}>✓ Submitted</Text>
-              </View>
-            )}
+      {/* Show prompt text at top after responding */}
+      {hasResponded && (
+        <View style={styles.promptHeaderContainer}>
+          <Text style={styles.promptHeaderText}>{todayPrompt}</Text>
+        </View>
+      )}
+
+      {/* User's Response - Show after submitting */}
+      {hasResponded && userResponse.trim() !== "" && (
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>Your Response</Text>
+          <View style={styles.contentWrapper}>
+            {renderReplyCard({ id: "user", username: "user", reply: userResponse, likes: 0 })}
           </View>
         </View>
+      )}
 
       {/* Friends' Replies Section - Only visible after answering */}
       {hasResponded && (
         <View style={styles.section}>
           <Text style={styles.sectionHeader}>Friends' Replies</Text>
           <View style={styles.contentWrapper}>
-            {friendsReplies.map((item) => (
-              <View key={item.id} style={styles.replyBox}>
-                <Text style={styles.friendName}>@{item.username}</Text>
-                <Text style={styles.friendReply}>{item.reply}</Text>
-
-                {/* Like and Reply buttons */}
-                <View style={styles.replyActions}>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => handleLike(item.id)}
-                  >
-                    <Text style={[styles.actionIcon, likes[item.id] && styles.likedIcon]}>
-                      {likes[item.id] ? "❤️" : "🤍"}
-                    </Text>
-                    <Text style={styles.actionText}>
-                      {item.likes + (likes[item.id] ? 1 : 0)}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => handleReply(item.id, item.username)}
-                  >
-                    <Text style={styles.actionIcon}>💬</Text>
-                    <Text style={styles.actionText}>Reply</Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Display existing replies */}
-                {replies[item.id] && replies[item.id].length > 0 && (
-                  <View style={styles.repliesContainer}>
-                    {replies[item.id].map((reply, idx) => (
-                      <View key={idx} style={styles.replyItem}>
-                        <Text style={styles.replyUsername}>@{reply.username}</Text>
-                        <Text style={styles.replyTextDisplay}>{reply.text}</Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
-
-                {/* Reply Input */}
-                {replyingTo?.id === item.id && (
-                  <View style={styles.replyInputContainer}>
-                    <TextInput
-                      style={styles.replyInput}
-                      placeholder={`Reply to @${item.username}...`}
-                      value={replyText}
-                      onChangeText={setReplyText}
-                      multiline
-                    />
-                    <View style={styles.replyInputActions}>
-                      <TouchableOpacity
-                        style={styles.replyCancel}
-                        onPress={() => setReplyingTo(null)}
-                      >
-                        <Text style={styles.replyCancelText}>Cancel</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.replySend}
-                        onPress={handleSendReply}
-                      >
-                        <Text style={styles.replySendText}>Send</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                )}
-              </View>
-            ))}
+            {friendsReplies.map((item) => renderReplyCard(item))}
           </View>
         </View>
       )}
 
-      {/* Past Prompts Section - Only visible after answering */}
+      {/* Popular Replies Section - Only visible after answering */}
       {hasResponded && (
         <View style={styles.section}>
-          <TouchableOpacity
-            style={styles.pastPromptsToggle}
-            onPress={() => setShowPastPrompts(!showPastPrompts)}
-          >
-            <Text style={styles.sectionHeader}>Previous Prompts</Text>
-            <Text style={styles.toggleIcon}>{showPastPrompts ? "▼" : "▶"}</Text>
-          </TouchableOpacity>
-
-          {showPastPrompts && (
-            <View style={styles.contentWrapper}>
-              {pastPrompts.map((item, index) => (
-                <View key={index} style={styles.pastBox}>
-                  <Text style={styles.pastDate}>{item.date}</Text>
-                  <Text style={styles.pastPrompt}>{item.prompt}</Text>
-                  <View style={styles.yourReplyBox}>
-                    <Text style={styles.yourReplyLabel}>Your reply:</Text>
-                    <Text style={styles.pastReply}>{item.yourReply}</Text>
-                  </View>
-                  <View style={styles.pastFriendsReplies}>
-                    <Text style={styles.pastFriendsLabel}>Friends' replies:</Text>
-                    {item.friendsReplies.map((friend) => (
-                      <View key={friend.id} style={styles.pastReplyCard}>
-                        <View style={styles.pastReplyHeader}>
-                          <Text style={styles.pastFriendName}>@{friend.username}</Text>
-                        </View>
-                        <Text style={styles.pastFriendReply}>{friend.reply}</Text>
-
-                        {/* Like and Reply buttons for past prompts */}
-                        <View style={styles.replyActions}>
-                          <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={() => handleLike(friend.id)}
-                          >
-                            <Text style={[styles.actionIcon, likes[friend.id] && styles.likedIcon]}>
-                              {likes[friend.id] ? "❤️" : "🤍"}
-                            </Text>
-                            <Text style={styles.actionText}>
-                              {friend.likes + (likes[friend.id] ? 1 : 0)}
-                            </Text>
-                          </TouchableOpacity>
-
-                          <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={() => handleReply(friend.id, friend.username)}
-                          >
-                            <Text style={styles.actionIcon}>💬</Text>
-                            <Text style={styles.actionText}>Reply</Text>
-                          </TouchableOpacity>
-                        </View>
-
-                        {/* Display existing replies for past prompts */}
-                        {replies[friend.id] && replies[friend.id].length > 0 && (
-                          <View style={styles.repliesContainer}>
-                            {replies[friend.id].map((reply, idx) => (
-                              <View key={idx} style={styles.replyItem}>
-                                <Text style={styles.replyUsername}>@{reply.username}</Text>
-                                <Text style={styles.replyTextDisplay}>{reply.text}</Text>
-                              </View>
-                            ))}
-                          </View>
-                        )}
-
-                        {/* Reply Input for past prompts */}
-                        {replyingTo?.id === friend.id && (
-                          <View style={styles.replyInputContainer}>
-                            <TextInput
-                              style={styles.replyInput}
-                              placeholder={`Reply to @${friend.username}...`}
-                              value={replyText}
-                              onChangeText={setReplyText}
-                              multiline
-                            />
-                            <View style={styles.replyInputActions}>
-                              <TouchableOpacity
-                                style={styles.replyCancel}
-                                onPress={() => setReplyingTo(null)}
-                              >
-                                <Text style={styles.replyCancelText}>Cancel</Text>
-                              </TouchableOpacity>
-                              <TouchableOpacity
-                                style={styles.replySend}
-                                onPress={handleSendReply}
-                              >
-                                <Text style={styles.replySendText}>Send</Text>
-                              </TouchableOpacity>
-                            </View>
-                          </View>
-                        )}
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              ))}
-            </View>
-          )}
+          <Text style={styles.sectionHeader}>Popular Replies</Text>
+          <View style={styles.contentWrapper}>
+            {popularReplies.map((item) => renderReplyCard(item))}
+          </View>
         </View>
+      )}
+
+      {/* Past Prompts Link - Only visible after answering */}
+      {hasResponded && (
+        <Link href="/screens/PastPromptsScreen" asChild>
+          <TouchableOpacity style={styles.pastPromptsLink}>
+            <View style={styles.pastPromptsLinkContent}>
+              <Ionicons name="time-outline" size={24} color="#4a9eff" />
+              <Text style={styles.pastPromptsLinkText}>View Previous Prompts</Text>
+              <Ionicons name="chevron-forward" size={24} color="#8b92a0" />
+            </View>
+          </TouchableOpacity>
+        </Link>
       )}
       </ScrollView>
     </SafeAreaView>

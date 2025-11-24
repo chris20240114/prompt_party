@@ -4,7 +4,6 @@ import { Link } from "expo-router";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../context/ThemeContext";
 import { createThemedStyles } from "../../styles/themedStyles";
-import { ThemeSwitcher } from "../../components/ThemeSwitcher";
 
 export default function OtherProfileScreen() {
   const { styles: themeStyles } = useTheme();
@@ -59,9 +58,6 @@ export default function OtherProfileScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Theme Switcher - FOR TESTING ONLY */}
-      <ThemeSwitcher />
-
       <ScrollView contentContainerStyle={styles.container}>
 
       {/* Header / Banner */}
@@ -108,6 +104,7 @@ export default function OtherProfileScreen() {
             <TextInput
               style={styles.promptInput}
               placeholder="Share your answer..."
+              placeholderTextColor="#a0a8b0"
               value={promptResponse}
               onChangeText={setPromptResponse}
               multiline
