@@ -10,8 +10,10 @@
     "newArchEnabled": true,
     "owner": "samikh-expo",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.samikh-expo.promptparty"
     },
+    "owner": "samikh-expo",
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
@@ -35,6 +37,10 @@
           "backgroundColor": "#ffffff"
         }
       ],
+<<<<<<< HEAD
+=======
+      "expo-font",
+>>>>>>> backend
       "expo-web-browser"
     ],
     "experiments": {

@@ -1,21 +1,64 @@
-import re
-from typing import Optional, List
+from typing import Optional, Dict
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
+import graphql_types as gql
 
 class User(BaseModel):
     userid: str
     username: str
     email: EmailStr
-    phone: str
     profile_picture: Optional[str] = None
+    bio: Optional[str] = None
+    ranking: Optional[Dict[str, int]] = None
+
+    def convert_UserType(self) -> gql.UserType:
+      return gql.UserType(
+          userid=self.userid, 
+          username=self.username, 
+          email=str(self.email), 
+          phone=None, 
+          profile_picture=self.profile_picture,
+          ranking=self.ranking
+      )
 
 class Post(BaseModel):
     postid: str
     content: str
-    author : User
+    authorid: str
     date: datetime
     edited: bool
     num_likes: int
+    promptid: Optional[str] = None
 
+    def convert_PostType(self) -> gql.PostType:
+      return gql.PostType(
+          postid=self.postid,
+          content=self.content, 
+          authorid=self.authorid,
+          date=self.date,
+          edited=self.edited,
+          num_likes=self.num_likes,
+          promptid=self.promptid
+      )
+
+#Models for Supabase
+
+class UserCreate(BaseModel):
+  username: str
+  email: EmailStr
+  password: str
+  profile_picture: Optional[str] = None
+  bio: Optional[str] = None
+  ranking: Optional[Dict[str, int]] = None
+
+class UserResponse(User):
+    pass
+
+class PostCreate(BaseModel):
+  content: str
+  authorid: str
+  promptid: Optional[str] = None
+
+class PostResponse(Post):
+    pass
     
