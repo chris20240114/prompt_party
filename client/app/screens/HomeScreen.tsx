@@ -1,13 +1,47 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import { useTheme } from "../../context/ThemeContext";
 import { createThemedStyles } from "../../styles/themedStyles";
+import { GraphQLClient, gql } from 'graphql-request';
 
 export default function HomeScreen() {
   const { styles: themeStyles } = useTheme();
   const styles = useMemo(() => createThemedStyles(themeStyles), [themeStyles]);
+  const API_BASE_URL = 'http://localhost:8000'; 
+  const GRAPHQL_URL = `${API_BASE_URL}/graphql`;
+  const client = new GraphQLClient(GRAPHQL_URL);
+  const [backendPosts, setBackendPosts] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const query = gql`
+          query {
+            allPosts {
+              postid
+              content
+              authorid
+              date
+              edited
+              num_likes
+              promptid
+            }
+          }
+        `;
+
+        const { allPosts } = await client.request(query);
+        setBackendPosts(allPosts);
+        console.log("Fetched posts:", allPosts);
+
+      } catch (err) {
+        console.error("Error fetching posts:", err);
+      }
+    };
+
+    fetchPosts();
+  }, []);  
 
   // Simulate daily prompt and user state
   const [todayPrompt] = useState("What inspired you today?");
@@ -190,7 +224,14 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionHeader}>Your Response</Text>
           <View style={styles.contentWrapper}>
-            {renderReplyCard({ id: "user", username: "user", reply: userResponse, likes: 0 })}
+            {backendPosts.map((post: any) =>
+              renderReplyCard({
+                id: post.postid,
+                username: post.authorid,
+                reply: post.content,
+                likes: post.num_likes
+              })
+            )}
           </View>
         </View>
       )}

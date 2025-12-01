@@ -34,6 +34,7 @@ class Query:
                     date=p["date"],
                     edited=p["edited"],
                     num_likes=p["num_likes"],
+                    promptid=p["promptid"],
                 )
             )
         return posts
