@@ -26,13 +26,32 @@ const GRAPHQL_URL = `${API_BASE_URL}/graphql`;
 Define the TypeScript interfaces based on your API models:
 
 ```typescript
+// Ranking types
+interface RankingType {
+  filmArtMusic: number;
+  currentEvents: number;
+  sports: number;
+  comedy: number;
+  technology: number;
+}
+
+interface RankingInput {
+  filmArtMusic: number;
+  currentEvents: number;
+  sports: number;
+  comedy: number;
+  technology: number;
+}
+
 // User types
 interface User {
   userid: string;
   username: string;
   email: string;
+  phone?: string;
   profile_picture?: string;
   bio?: string;
+  ranking?: RankingType;
 }
 
 interface UserCreate {
@@ -41,6 +60,7 @@ interface UserCreate {
   password: string;
   profile_picture?: string;
   bio?: string;
+  ranking?: RankingInput;
 }
 
 // Post types
@@ -51,11 +71,13 @@ interface Post {
   date: string;
   edited: boolean;
   num_likes: number;
+  promptid?: string;
 }
 
 interface PostCreate {
   content: string;
   authorid: string;
+  promptid?: string;
 }
 
 // API response types
@@ -198,6 +220,7 @@ const GET_ALL_POSTS = gql`
       date
       edited
       numLikes
+      promptid
     }
   }
 `;
@@ -211,6 +234,7 @@ const GET_USER_POSTS = gql`
       date
       edited
       numLikes
+      promptid
     }
   }
 `;
@@ -224,6 +248,7 @@ const GET_POST_BY_ID = gql`
       date
       edited
       numLikes
+      promptid
     }
   }
 `;
@@ -237,6 +262,7 @@ const CREATE_POST = gql`
       date
       edited
       numLikes
+      promptid
     }
   }
 `;
@@ -247,7 +273,15 @@ const CREATE_USER = gql`
       userid
       username
       email
+      phone
       profilePicture
+      ranking {
+        filmArtMusic
+        currentEvents
+        sports
+        comedy
+        technology
+      }
     }
   }
 `;
@@ -260,6 +294,13 @@ const GET_USER_BY_USERID = gql`
       email
       phone
       profilePicture
+      ranking {
+        filmArtMusic
+        currentEvents
+        sports
+        comedy
+        technology
+      }
     }
   }
 `;
@@ -270,13 +311,35 @@ const GET_USERID_BY_USERNAME = gql`
   }
 `;
 
-const GET_FOLLOWERS = gql`
-  query GetFollowers($username: String!) {
-    getFollowers(username: $username) {
+const GET_FRIENDS = gql`
+  query GetFriends($username: String!) {
+    getFriends(username: $username) {
       userid
       username
       email
+      phone
       profilePicture
+      ranking {
+        filmArtMusic
+        currentEvents
+        sports
+        comedy
+        technology
+      }
+    }
+  }
+`;
+
+const GET_REPLIES = gql`
+  query GetReplies($postid: String!, $k: Int = 10) {
+    getReplies(postid: $postid, k: $k) {
+      postid
+      content
+      authorid
+      date
+      edited
+      numLikes
+      promptid
     }
   }
 `;
@@ -287,7 +350,15 @@ const DELETE_USER = gql`
       userid
       username
       email
+      phone
       profilePicture
+      ranking {
+        filmArtMusic
+        currentEvents
+        sports
+        comedy
+        technology
+      }
     }
   }
 `;
@@ -301,6 +372,7 @@ const DELETE_POST = gql`
       date
       edited
       numLikes
+      promptid
     }
   }
 `;
@@ -311,6 +383,7 @@ const ADD_LIKE = gql`
       postid
       content
       numLikes
+      promptid
     }
   }
 `;
@@ -321,7 +394,15 @@ const ADD_FOLLOW = gql`
       userid
       username
       email
+      phone
       profilePicture
+      ranking {
+        filmArtMusic
+        currentEvents
+        sports
+        comedy
+        technology
+      }
     }
   }
 `;
@@ -335,6 +416,7 @@ const UPDATE_POST_FIELD = gql`
       date
       edited
       numLikes
+      promptid
     }
   }
 `;
@@ -345,7 +427,15 @@ const UPDATE_USER_FIELD = gql`
       userid
       username
       email
+      phone
       profilePicture
+      ranking {
+        filmArtMusic
+        currentEvents
+        sports
+        comedy
+        technology
+      }
     }
   }
 `;
@@ -427,31 +517,50 @@ const userid = await getUseridByUsername('johndoe');
 console.log('User ID:', userid);
 ```
 
-#### Get Followers
+#### Get Friends (Mutual Followers)
 
 ```typescript
-async function getFollowers(username: string): Promise<User[]> {
+async function getFriends(username: string): Promise<User[]> {
   try {
-    const data = await client.request(GET_FOLLOWERS, { username });
-    return data.getFollowers || [];
+    const data = await client.request(GET_FRIENDS, { username });
+    return data.getFriends || [];
   } catch (error) {
-    console.error('Failed to fetch followers:', error);
+    console.error('Failed to fetch friends:', error);
     return [];
   }
 }
 
 // Usage
-const followers = await getFollowers('johndoe');
-console.log('Followers:', followers);
+const friends = await getFriends('johndoe');
+console.log('Friends:', friends);
+// Note: Friends are users who both follow and are followed by the given user
 ```
-*Note: This query is currently being implemented.*
+
+#### Get Replies to a Post
+
+```typescript
+async function getReplies(postid: string, k: number = 10): Promise<Post[]> {
+  try {
+    const data = await client.request(GET_REPLIES, { postid, k });
+    return data.getReplies || [];
+  } catch (error) {
+    console.error('Failed to fetch replies:', error);
+    return [];
+  }
+}
+
+// Usage
+const replies = await getReplies('post-uuid-here', 10);
+console.log('Replies:', replies);
+// Returns up to k replies to the specified post
+```
 
 ### GraphQL Mutation Functions
 
 #### Create Post via GraphQL
 
 ```typescript
-async function createPostGraphQL(postData: { content: string; authorid: string }): Promise<Post | null> {
+async function createPostGraphQL(postData: { content: string; authorid: string; promptid?: string }): Promise<Post | null> {
   try {
     const data = await client.request(CREATE_POST, { postData });
     return data.createPost;
@@ -464,7 +573,8 @@ async function createPostGraphQL(postData: { content: string; authorid: string }
 // Usage
 const newPost = await createPostGraphQL({
   content: 'Hello GraphQL!',
-  authorid: 'user-uuid-here'
+  authorid: 'user-uuid-here',
+  promptid: 'optional-prompt-id'
 });
 ```
 
@@ -487,7 +597,14 @@ const newUser = await createUserGraphQL({
   email: 'john@example.com',
   password: 'securepassword',
   profile_picture: 'https://example.com/avatar.jpg',
-  bio: 'Hello World!'
+  bio: 'Hello World!',
+  ranking: {
+    filmArtMusic: 5,
+    currentEvents: 3,
+    sports: 2,
+    comedy: 4,
+    technology: 5
+  }
 });
 ```
 
@@ -531,7 +648,7 @@ console.log('Deleted post:', deletedPost);
 
 ```typescript
 async function addLikeGraphQL(
-  postData: { content: string; authorid: string },
+  postData: { content: string; authorid: string; promptid?: string },
   userData: UserCreate
 ): Promise<Post | null> {
   try {
@@ -545,7 +662,11 @@ async function addLikeGraphQL(
 
 // Usage
 const likedPost = await addLikeGraphQL(
-  { content: 'Post content', authorid: 'author-uuid-here' },
+  { 
+    content: 'Post content', 
+    authorid: 'author-uuid-here',
+    promptid: 'optional-prompt-id'
+  },
   {
     username: 'likerusername',
     email: 'liker@example.com',
@@ -553,6 +674,7 @@ const likedPost = await addLikeGraphQL(
   }
 );
 console.log('Post after like:', likedPost);
+// Note: This mutation requires full post and user data, not just IDs
 ```
 
 #### Add Follow via GraphQL
@@ -713,7 +835,7 @@ class PromptPartyAPI {
     }
   }
 
-  async createPostGraphQL(postData: { content: string; authorid: string }): Promise<Post | null> {
+  async createPostGraphQL(postData: { content: string; authorid: string; promptid?: string }): Promise<Post | null> {
     try {
       return await this.graphqlClient.request(CREATE_POST, { postData }).then(data => data.createPost);
     } catch (error) {
@@ -738,9 +860,17 @@ class PromptPartyAPI {
     }
   }
 
-  async getFollowers(username: string): Promise<User[]> {
+  async getFriends(username: string): Promise<User[]> {
     try {
-      return await this.graphqlClient.request(GET_FOLLOWERS, { username }).then(data => data.getFollowers || []);
+      return await this.graphqlClient.request(GET_FRIENDS, { username }).then(data => data.getFriends || []);
+    } catch (error) {
+      return [];
+    }
+  }
+
+  async getReplies(postid: string, k: number = 10): Promise<Post[]> {
+    try {
+      return await this.graphqlClient.request(GET_REPLIES, { postid, k }).then(data => data.getReplies || []);
     } catch (error) {
       return [];
     }
@@ -773,7 +903,7 @@ class PromptPartyAPI {
     }
   }
 
-  async addLikeGraphQL(postData: { content: string; authorid: string }, userData: UserCreate): Promise<Post | null> {
+  async addLikeGraphQL(postData: { content: string; authorid: string; promptid?: string }, userData: UserCreate): Promise<Post | null> {
     try {
       return await this.graphqlClient.request(ADD_LIKE, { postData, userData }).then(data => data.addLike);
     } catch (error) {
@@ -856,6 +986,16 @@ async function example() {
     const userPosts = await api.getUserPosts(newUser.userid);
     console.log('User posts:', userPosts);
 
+    // Get friends (mutual followers)
+    const friends = await api.getFriends(newUser.username);
+    console.log('Friends:', friends);
+
+    // Get replies to a post
+    if (newPost) {
+      const replies = await api.getReplies(newPost.postid, 10);
+      console.log('Replies:', replies);
+    }
+
     // Update a post
     if (newPost) {
       const updatedPost = await api.updatePostFieldGraphQL(
@@ -869,7 +1009,11 @@ async function example() {
     // Add a like
     if (newPost) {
       const likedPost = await api.addLikeGraphQL(
-        { content: newPost.content, authorid: newPost.authorid },
+        { 
+          content: newPost.content, 
+          authorid: newPost.authorid,
+          promptid: newPost.promptid
+        },
         {
           username: 'anotheruser',
           email: 'another@example.com',
