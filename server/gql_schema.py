@@ -30,7 +30,7 @@ class Query:
                 PostType(
                     postid=p["postid"],
                     content=p["content"],
-                    authorid=p["author_id"],
+                    authorid=p.get("author_id") or p.get("authorid") or p.get("authorId"),
                     date=p["date"],
                     edited=p["edited"],
                     num_likes=p["num_likes"],
@@ -94,7 +94,7 @@ class Query:
             PostType(
                 postid=p["postid"],
                 content=p["content"],
-                authorid=p["author_id"],
+                authorid=p.get("author_id") or p.get("authorid") or p.get("authorId"),
                 date=p["date"],
                 edited=p["edited"],
                 num_likes=p["num_likes"],
@@ -272,7 +272,7 @@ class Mutation:
             print(f"[Supabase] Success in adding post to supabase.")
             n4j.add_post(post)
 
-            return post.convert_PostType
+            return post.convert_PostType()
 
         except Exception as e:
             print("Error creating post:", e)
@@ -549,5 +549,5 @@ class Mutation:
         except Exception as e:
             print("Error in adding reply:", e)
             return None
-        
+
 schema = strawberry.Schema(query=Query, mutation=Mutation)
