@@ -27,6 +27,22 @@ export default function HomeScreen() {
       }
     }
   `;
+
+  const CREATE_POST = gql`
+  mutation CreatePost($postData: PostInput!) {
+    createPost(postData: $postData) {
+      postid
+      content
+      authorid
+      date
+      edited
+      numlikes
+      promptid
+    }
+  }
+`;
+
+
   const [usernameMap, setUsernameMap] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
@@ -127,10 +143,42 @@ export default function HomeScreen() {
     }).slice(0, 5); // Top 5 most liked
   }, [likes, allReplies]);
 
-  const handleSubmit = () => {
-    if (userResponse.trim() === "") return alert("Please write your response!");
+  const handleSubmit = async () => {
+  if (userResponse.trim() === "") return alert("Please write your response!");
+
+  try {
+    // TEMPORARY: authorid should come from auth / session
+    const authorid = 'temp_id';   
+
+    const variables = {
+      postData: {
+        content: userResponse,
+        authorid,
+        promptid: null
+      }
+    };
+
+    const res = await client.request(CREATE_POST, variables);
+    const newPost = res.createPost;
+
+    // Insert new post at top of feed
+    setBackendPosts(prev => [
+      {
+        ...newPost,
+        username: usernameMap[newPost.authorid] || newPost.authorid,
+        replies: []
+      },
+      ...prev
+    ]);
+
     setHasResponded(true);
-  };
+
+  } catch (err) {
+    console.error("Error creating post:", err);
+    alert("Failed to submit your response.");
+  }
+};
+
 
   const handleLike = (id: string) => {
     setLikes(prev => ({
