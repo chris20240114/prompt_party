@@ -2,6 +2,7 @@ import strawberry
 from graphql import GraphQLError
 
 from typing import List, Optional
+from datetime import datetime
 
 import database.relational_db.supabase_service as sp
 import database.graph_db.graph as n4j
@@ -9,6 +10,15 @@ import database.graph_db.graph as n4j
 from graphql_types import UserType, UserInput, PostType, PostInput
 from classes import User, Post, PostResponse, PostCreate, UserCreate, UserResponse
 import uuid
+
+
+def parse_date(date_value):
+    """Convert date string to datetime object if needed."""
+    if isinstance(date_value, str):
+        # Handle ISO format strings, including those with 'Z' timezone
+        date_str = date_value.replace('Z', '+00:00')
+        return datetime.fromisoformat(date_str)
+    return date_value
 
 
 # ---- Query Resolvers ----
@@ -26,14 +36,16 @@ class Query:
         response = sp.supabase.table("posts").select("*").execute()
         posts = []
         for p in response.data:
+            # Convert date string to datetime if needed
+            date_value = parse_date(p["date"])
             posts.append(
                 PostType(
                     postid=p["postid"],
                     content=p["content"],
-                    authorid=p["author_id"],
-                    date=p["date"],
+                    authorid=p["authorid"],
+                    date=date_value,
                     edited=p["edited"],
-                    num_likes=p["num_likes"],
+                    numlikes=p["num_likes"],
                     promptid=p["promptid"],
                 )
             )
@@ -56,7 +68,13 @@ class Query:
         if not result.get("success"):
             raise GraphQLError(f"Error fetching posts: {result.get('error')}")
 
-        return [PostType(**p) for p in result.get("posts", [])]
+        posts = []
+        for p in result.get("posts", []):
+            # Convert date string to datetime if needed
+            if "date" in p:
+                p["date"] = parse_date(p["date"])
+            posts.append(PostType(**p))
+        return posts
 
 
     @strawberry.field
@@ -79,6 +97,9 @@ class Query:
             raise GraphQLError(result.get("error", f"Post {postid} not found"))
 
         p = result["post"]
+        # Convert date string to datetime if needed
+        if "date" in p:
+            p["date"] = parse_date(p["date"])
         return PostType(**p)
 
 
@@ -216,7 +237,11 @@ class Query:
         for reply_id in reply_ids:
             result = await sp.get_post_by_id(reply_id)
             if result.get("success"):
-                replies.append(PostType(**result["post"]))
+                p = result["post"]
+                # Convert date string to datetime if needed
+                if "date" in p:
+                    p["date"] = parse_date(p["date"])
+                replies.append(PostType(**p))
         return replies
 
 
@@ -413,13 +438,17 @@ class Mutation:
 
             n4j.delete_post(post)
 
+            date_value = post_data.get("date", "")
+            if date_value:
+                date_value = parse_date(date_value)
+            
             return PostType(
                 postid=post_data.get("postid", ""),
                 content=post_data.get("content", ""),
                 authorid=post_data.get("authorid", ""),
-                date=post_data.get("date", ""),
-                edited=post_data.get("edited", ""),
-                num_likes=post_data.get("num_likes", "")
+                date=date_value,
+                edited=post_data.get("edited", False),
+                numlikes=post_data.get("num_likes", 0)
             )
         except GraphQLError:
             raise

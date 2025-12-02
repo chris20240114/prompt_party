@@ -44,7 +44,7 @@ class PostType:
     authorid: str
     date: datetime
     edited: bool
-    num_likes: int
+    numlikes: int
     promptid: Optional[str] = None
 
 @strawberry.input

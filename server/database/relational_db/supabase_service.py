@@ -380,7 +380,7 @@ async def create_post(post_data: PostCreate) -> dict:
             "postid": post_id,
             "content": post_data.content,
             "authorid": post_data.authorid,
-            "date": datetime.now(timezone.utc).isoformat(),
+            "date": datetime.now(timezone.utc),#.isoformat(),
             "edited": False,
             "num_likes": 0,
             "promptid": post_data.promptid
