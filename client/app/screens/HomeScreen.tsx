@@ -22,7 +22,7 @@ export default function HomeScreen() {
         authorid
         date
         edited
-        num_likes
+        numlikes
         promptid
       }
     }
@@ -292,7 +292,7 @@ export default function HomeScreen() {
                 id: post.postid,
                 username: usernameMap[post.authorid] || post.authorid,
                 reply: post.content,
-                replies: post.replies
+                replies: post.replies,
                 likes: post.numlikes              })
             )}
           </View>
