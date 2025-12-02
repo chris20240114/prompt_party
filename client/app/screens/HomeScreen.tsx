@@ -13,6 +13,7 @@ export default function HomeScreen() {
   const GRAPHQL_URL = `${API_BASE_URL}/graphql`;
   const client = new GraphQLClient(GRAPHQL_URL);
   const [backendPosts, setBackendPosts] = useState<any[]>([]);
+  const [usernameMap, setUsernameMap] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -25,7 +26,7 @@ export default function HomeScreen() {
               authorid
               date
               edited
-              num_likes
+              numlikes
               promptid
             }
           }
@@ -35,6 +36,34 @@ export default function HomeScreen() {
         setBackendPosts(allPosts);
         console.log("Fetched posts:", allPosts);
 
+        // Fetch usernames for all unique authorids
+        const authorIds = allPosts.map((post: any) => post.authorid).filter((id: any): id is string => typeof id === 'string');
+        const uniqueAuthorIds = Array.from(new Set<string>(authorIds));
+        const usernameMapping: { [key: string]: string } = {};
+
+        await Promise.all(
+          uniqueAuthorIds.map(async (authorid: string) => {
+            try {
+              const userQuery = gql`
+                query GetUser($userid: String!) {
+                  userByUserid(userid: $userid) {
+                    username
+                  }
+                }
+              `;
+              const { userByUserid } = await client.request(userQuery, { userid: authorid });
+              if (userByUserid) {
+                usernameMapping[authorid] = userByUserid.username;
+              }
+            } catch (err) {
+              console.error(`Error fetching username for userid ${authorid}:`, err);
+              // Fallback to authorid if username fetch fails
+              usernameMapping[authorid] = authorid;
+            }
+          })
+        );
+
+        setUsernameMap(usernameMapping);
       } catch (err) {
         console.error("Error fetching posts:", err);
       }
@@ -227,9 +256,9 @@ export default function HomeScreen() {
             {backendPosts.map((post: any) =>
               renderReplyCard({
                 id: post.postid,
-                username: post.authorid,
+                username: usernameMap[post.authorid] || post.authorid,
                 reply: post.content,
-                likes: post.num_likes
+                likes: post.numlikes
               })
             )}
           </View>
