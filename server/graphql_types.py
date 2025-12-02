@@ -42,7 +42,7 @@ class PostType:
     postid: str
     content: str
     authorid: str
-    date: datetime
+    date: str  # Changed to str for JSON serialization
     edited: bool
     numlikes: int
     promptid: Optional[str] = None
@@ -52,3 +52,4 @@ class PostInput:
     content: str
     authorid: str
     promptid: Optional[str] = None
+    postid: Optional[str] = None  # Added for referencing existing posts (e.g., in add_like)

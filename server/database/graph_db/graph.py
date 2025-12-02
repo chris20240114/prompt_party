@@ -230,7 +230,7 @@ def find_posts(user: User) -> List[str]:
     records, _, _ = driver.execute_query(
         """
             MATCH (u:User {userid: $userid})-[:POSTED]->(p:Post)
-            WHERE p.isReply = false
+            WHERE p.isReply = false AND EXISTS(p.postid)
             RETURN p.postid AS postid
             ORDER BY p.date DESC
         """,
@@ -238,21 +238,23 @@ def find_posts(user: User) -> List[str]:
         database_="neo4j",
     )
     print(f"[AuraDB] Found {len(records)} posts")
-    return [r["postid"] for r in records]
+    return [r["postid"] for r in records if r.get("postid") is not None]
 
 def find_replies(post: Post) -> List[str]:
     """ Returns a list of the postids of the post's replies"""
+    # Use a pattern that explicitly requires postid to exist
     records, _, _ = driver.execute_query(
         """
             MATCH (p1:Post {postid: $postid})-[:HASREPLY]->(p2:Post)
+            WHERE p2.postid IS NOT NULL
             RETURN p2.postid AS postid
-            ORDER BY p2.date DESC
+            ORDER BY COALESCE(p2.date, datetime()) DESC
         """,
         postid=post.postid,
         database_="neo4j",
     )
     print(f"[AuraDB] Found {len(records)} replies")
-    return [r["postid"] for r in records]
+    return [r["postid"] for r in records if r.get("postid") is not None]
 
 
 #Implement graphql service that retrieves past prompts.
@@ -279,6 +281,7 @@ def replies_from_prompt(promptid: str) -> List[str]:
     records, _, _ = driver.execute_query(
         """
             MATCH (pr:Prompt {promptid: $promptid})-[:GENERATED_REPLY]->(p:Post)
+            WHERE EXISTS(p.postid)
             RETURN p.postid AS postid
             ORDER BY p.date DESC
         """,
@@ -286,7 +289,7 @@ def replies_from_prompt(promptid: str) -> List[str]:
         database_="neo4j",
     )
     print(f"[AuraDB] Found {len(records)} replies from prompt")
-    return [r["postid"] for r in records]
+    return [r["postid"] for r in records if r.get("postid") is not None]
 
 def main():
     u2 = User("1", "user1", "email1@email.com", "124")

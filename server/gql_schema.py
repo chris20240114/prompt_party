@@ -20,6 +20,16 @@ def parse_date(date_value):
         return datetime.fromisoformat(date_str)
     return date_value
 
+def format_date_for_graphql(date_value):
+    """Convert datetime object to ISO format string for GraphQL."""
+    if date_value is None:
+        return ""
+    if isinstance(date_value, datetime):
+        return date_value.isoformat()
+    elif isinstance(date_value, str):
+        return date_value
+    return str(date_value)
+
 
 # ---- Query Resolvers ----
 @strawberry.type
@@ -36,8 +46,8 @@ class Query:
         response = sp.supabase.table("posts").select("*").execute()
         posts = []
         for p in response.data:
-            # Convert date string to datetime if needed
-            date_value = parse_date(p["date"])
+            # Convert date to ISO string for GraphQL
+            date_value = format_date_for_graphql(p["date"])
             posts.append(
                 PostType(
                     postid=p["postid"],
@@ -70,9 +80,9 @@ class Query:
 
         posts = []
         for p in result.get("posts", []):
-            # Convert date string to datetime if needed
+            # Convert date to ISO string for GraphQL
             if "date" in p:
-                p["date"] = parse_date(p["date"])
+                p["date"] = format_date_for_graphql(p["date"])
             posts.append(PostType(**p))
         return posts
 
@@ -97,9 +107,9 @@ class Query:
             raise GraphQLError(result.get("error", f"Post {postid} not found"))
 
         p = result["post"]
-        # Convert date string to datetime if needed
+        # Convert date to ISO string for GraphQL
         if "date" in p:
-            p["date"] = parse_date(p["date"])
+            p["date"] = format_date_for_graphql(p["date"])
         return PostType(**p)
 
 
@@ -238,9 +248,9 @@ class Query:
             result = await sp.get_post_by_id(reply_id)
             if result.get("success"):
                 p = result["post"]
-                # Convert date string to datetime if needed
+                # Convert date to ISO string for GraphQL
                 if "date" in p:
-                    p["date"] = parse_date(p["date"])
+                    p["date"] = format_date_for_graphql(p["date"])
                 replies.append(PostType(**p))
         return replies
 
@@ -277,7 +287,16 @@ class Mutation:
             print(f"[Supabase] Success in adding post to supabase.")
             n4j.add_post(post)
 
-            return post.convert_PostType
+            # Create PostType directly, converting datetime to ISO string
+            return PostType(
+                postid=post.postid,
+                content=post.content,
+                authorid=post.authorid,
+                date=format_date_for_graphql(post.date),
+                edited=post.edited,
+                numlikes=post.num_likes,
+                promptid=post.promptid
+            )
 
         except Exception as e:
             print("Error creating post:", e)
@@ -332,14 +351,31 @@ class Mutation:
             Optional[PostType]: The post data if successful, None if error occurs
         """
         try:
+            if not post_data.postid:
+                raise GraphQLError("postid is required for adding a like")
+            
             user = User(**user_data.__dict__)
-            post = Post(**post_data.__dict__)
+            
+            # Fetch the full post from database to get all fields
+            post_result = await sp.get_post_by_id(post_data.postid)
+            if not post_result.get("success"):
+                raise GraphQLError(f"Post not found: {post_data.postid}")
+            
+            post = Post(**post_result["post"])
 
             n4j.add_like(user, post)
             await sp.update_like_count(post)
 
-
-            return post.convert_PostType()
+            # Create PostType with date as ISO string
+            return PostType(
+                postid=post.postid,
+                content=post.content,
+                authorid=post.authorid,
+                date=format_date_for_graphql(post.date),
+                edited=post.edited,
+                numlikes=post.num_likes,
+                promptid=post.promptid
+            )
         except Exception as e:
             print("Error in adding like:", e)
             return
@@ -438,9 +474,8 @@ class Mutation:
 
             n4j.delete_post(post)
 
-            date_value = post_data.get("date", "")
-            if date_value:
-                date_value = parse_date(date_value)
+            # Convert date to ISO string for GraphQL
+            date_value = format_date_for_graphql(post_data.get("date", ""))
             
             return PostType(
                 postid=post_data.get("postid", ""),
@@ -492,6 +527,10 @@ class Mutation:
                 return None
 
             updated_post_data = response.data[0]
+            
+            # Convert date to ISO string for GraphQL
+            if "date" in updated_post_data:
+                updated_post_data["date"] = format_date_for_graphql(updated_post_data["date"])
 
             print(f"[Supabase] Successfully updated {field_to_update} for post {post_id}.")
             return PostType(**updated_post_data)

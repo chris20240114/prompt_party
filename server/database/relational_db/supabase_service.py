@@ -376,11 +376,13 @@ async def create_post(post_data: PostCreate) -> dict:
     """
     try:
         post_id = str(uuid.uuid4())
+        # Convert datetime to ISO string immediately to avoid any serialization issues
+        date_iso_str = datetime.now(timezone.utc).isoformat()
         record = {
             "postid": post_id,
             "content": post_data.content,
             "authorid": post_data.authorid,
-            "date": datetime.now(timezone.utc),#.isoformat(),
+            "date": date_iso_str,  # ISO string for Supabase
             "edited": False,
             "num_likes": 0,
             "promptid": post_data.promptid
@@ -388,20 +390,41 @@ async def create_post(post_data: PostCreate) -> dict:
         response = supabase.table("posts").insert(record).execute()
         if response.data is None or len(response.data) == 0:
             return {"success": False, "error": "Failed to insert post"}
+        
+        # Get the inserted post data from response to ensure consistency
+        inserted_post = response.data[0]
+        
+        # Parse the date from the response (Supabase returns it as string)
+        # Convert string to datetime for PostResponse
+        date_str = inserted_post.get("date", date_iso_str)
+        if isinstance(date_str, str):
+            # Handle ISO format strings, including those with 'Z' timezone
+            date_str_clean = date_str.replace('Z', '+00:00')
+            date_from_db = datetime.fromisoformat(date_str_clean)
+        else:
+            # Fallback: create new datetime if date_str is not a string
+            date_from_db = datetime.now(timezone.utc) if not isinstance(date_str, datetime) else date_str
+        
         return {
             "success": True,
             "post": PostResponse(
                 postid=post_id,
                 content=post_data.content,
                 authorid=post_data.authorid,
-                date=record["date"],
+                date=date_from_db,  # Use datetime object for PostResponse
                 edited=False,
                 num_likes=0,
                 promptid=post_data.promptid
             )
         }
     except Exception as e:
-        return {"success": False, "error": str(e)}
+        # Safely convert exception to string, handling datetime serialization issues
+        try:
+            error_msg = str(e)
+        except (TypeError, ValueError) as ser_error:
+            # If str(e) fails due to datetime serialization, use a generic message
+            error_msg = f"Error creating post: {type(e).__name__}"
+        return {"success": False, "error": error_msg}
 
 async def delete_post(postid: str) -> dict:
     """

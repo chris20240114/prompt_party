@@ -158,7 +158,7 @@ export default function HomeScreen() {
 
   try {
     // TEMPORARY: authorid should come from auth / session
-    const authorid = 'temp_id';   
+    const authorid = '0453d2cd-9f84-47d0-9876-4abd8ec6a7a9';   
 
     const variables = {
       postData: {
@@ -171,6 +171,12 @@ export default function HomeScreen() {
     const res = await client.request(CREATE_POST, variables);
     const newPost = res.createPost;
 
+    // Check if post was created successfully
+    if (!newPost) {
+      alert("Failed to create post. Please try again.");
+      return;
+    }
+
     // Insert new post at top of feed
     setBackendPosts(prev => [
       {
@@ -182,6 +188,7 @@ export default function HomeScreen() {
     ]);
 
     setHasResponded(true);
+    setUserResponse(""); // Clear the input after successful submission
 
   } catch (err) {
     console.error("Error creating post:", err);
@@ -334,6 +341,7 @@ export default function HomeScreen() {
                 value={userResponse}
                 onChangeText={setUserResponse}
                 multiline
+                editable={!hasResponded}
               />
 
               <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
@@ -351,9 +359,29 @@ export default function HomeScreen() {
       )}
 
       {/* User's Response - Show after submitting */}
-      {hasResponded && userResponse.trim() !== "" && (
+      {hasResponded && (
         <View style={styles.section}>
           <Text style={styles.sectionHeader}>Your Response</Text>
+          <View style={styles.contentWrapper}>
+            {backendPosts
+              .filter((post: any) => post.authorid === '0453d2cd-9f84-47d0-9876-4abd8ec6a7a9')
+              .map((post: any) =>
+                renderReplyCard({
+                  id: post.postid,
+                  username: usernameMap[post.authorid] || post.authorid,
+                  reply: post.content,
+                  replies: post.replies,
+                  likes: post.numlikes
+                })
+              )}
+          </View>
+        </View>
+      )}
+
+      {/* All Posts Section - Show all posts from backend (only after submitting) */}
+      {hasResponded && backendPosts.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>All Posts</Text>
           <View style={styles.contentWrapper}>
             {backendPosts.map((post: any) =>
               renderReplyCard({
@@ -361,7 +389,8 @@ export default function HomeScreen() {
                 username: usernameMap[post.authorid] || post.authorid,
                 reply: post.content,
                 replies: post.replies,
-                likes: post.numlikes              })
+                likes: post.numlikes
+              })
             )}
           </View>
         </View>
