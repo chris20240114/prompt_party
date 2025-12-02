@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView, RefreshControl } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import { useTheme } from "../../context/ThemeContext";
 import { createThemedStyles } from "../../styles/themedStyles";
 import { GraphQLClient, gql } from 'graphql-request';
+import * as Haptics from 'expo-haptics';
 
 export default function HomeScreen() {
   const { styles: themeStyles } = useTheme();
@@ -28,71 +29,80 @@ export default function HomeScreen() {
     }
   `;
   const [usernameMap, setUsernameMap] = useState<{ [key: string]: string }>({});
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchPosts = async () => {
+    try {
+      const query = gql`
+        query {
+          allPosts {
+            postid
+            content
+            authorid
+            date
+            edited
+            numlikes
+            promptid
+          }
+        }
+      `;
+
+      const allPostsResponse  = await client.request(query);
+      const allPosts = allPostsResponse.allPosts;
+      const postsWithReplies = await Promise.all(
+        allPosts.map(async (post: any) => {
+          const repliesResponse = await client.request(GET_REPLIES_QUERY, { postid: post.postid, k: 10 });
+          const replies = repliesResponse.getReplies || [];
+          return { ...post, replies};
+        })
+      );
+      setBackendPosts(postsWithReplies);
+      console.log("Fetched posts:", postsWithReplies);
+
+      // Fetch usernames for all unique authorids
+      const authorIds = allPosts.map((post: any) => post.authorid).filter((id: any): id is string => typeof id === 'string');
+      const uniqueAuthorIds = Array.from(new Set<string>(authorIds));
+      const usernameMapping: { [key: string]: string } = {};
+
+      await Promise.all(
+        uniqueAuthorIds.map(async (authorid: string) => {
+          try {
+            const userQuery = gql`
+              query GetUser($userid: String!) {
+                userByUserid(userid: $userid) {
+                  username
+                }
+              }
+            `;
+            const { userByUserid } = await client.request(userQuery, { userid: authorid });
+            if (userByUserid) {
+              usernameMapping[authorid] = userByUserid.username;
+            }
+          } catch (err) {
+            console.error(`Error fetching username for userid ${authorid}:`, err);
+            // Fallback to authorid if username fetch fails
+            usernameMapping[authorid] = authorid;
+          }
+        })
+      );
+
+      setUsernameMap(usernameMapping);
+    } catch (err) {
+      console.error("Error fetching posts:", err);
+    }
+  };
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const query = gql`
-          query {
-            allPosts {
-              postid
-              content
-              authorid
-              date
-              edited
-              numlikes
-              promptid
-            }
-          }
-        `;
-
-        const allPostsResponse  = await client.request(query);
-        const allPosts = allPostsResponse.allPosts;
-        const postsWithReplies = await Promise.all(
-          allPosts.map(async (post: any) => {
-            const repliesResponse = await client.request(GET_REPLIES_QUERY, { postid: post.postid, k: 10 });
-            const replies = repliesResponse.getReplies || [];
-            return { ...post, replies};
-          })
-        );
-        setBackendPosts(postsWithReplies);
-        console.log("Fetched posts:", postsWithReplies);
-
-        // Fetch usernames for all unique authorids
-        const authorIds = allPosts.map((post: any) => post.authorid).filter((id: any): id is string => typeof id === 'string');
-        const uniqueAuthorIds = Array.from(new Set<string>(authorIds));
-        const usernameMapping: { [key: string]: string } = {};
-
-        await Promise.all(
-          uniqueAuthorIds.map(async (authorid: string) => {
-            try {
-              const userQuery = gql`
-                query GetUser($userid: String!) {
-                  userByUserid(userid: $userid) {
-                    username
-                  }
-                }
-              `;
-              const { userByUserid } = await client.request(userQuery, { userid: authorid });
-              if (userByUserid) {
-                usernameMapping[authorid] = userByUserid.username;
-              }
-            } catch (err) {
-              console.error(`Error fetching username for userid ${authorid}:`, err);
-              // Fallback to authorid if username fetch fails
-              usernameMapping[authorid] = authorid;
-            }
-          })
-        );
-
-        setUsernameMap(usernameMapping);
-      } catch (err) {
-        console.error("Error fetching posts:", err);
-      }
-    };
-
     fetchPosts();
-  }, []);  
+  }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    // Trigger haptic feedback when refresh starts
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await fetchPosts();
+    setRefreshing(false);
+  };  
 
   // Simulate daily prompt and user state
   const [todayPrompt] = useState("What inspired you today?");
@@ -247,7 +257,17 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView 
+        contentContainerStyle={styles.container}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#4a9eff"
+            colors={["#4a9eff"]}
+          />
+        }
+      >
         {/* Daily Prompt - Only show before responding */}
         {!hasResponded && (
           <View style={styles.promptContainerFull}>
