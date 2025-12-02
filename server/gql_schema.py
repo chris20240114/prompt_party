@@ -518,5 +518,36 @@ class Mutation:
             profile_picture=result.get("profile_picture"),
             ranking=result.get("ranking")
         )
+        
+    @strawberry.mutation
+    async def add_reply(self, parent_postid: str, child_postid: str) -> Optional[PostType]:
+        """
+        Adds a reply relationship between two posts in the graph database.
 
+        Args:
+            parent_postid (str): The post ID of the parent post being replied to.
+            child_postid (str): The post ID of the child reply post.
+        Returns:
+            Optional[PostType]: The child post data if successful, None if error occurs
+        """
+        try:
+            parent_result = await sp.get_post_by_id(parent_postid)
+            child_result = await sp.get_post_by_id(child_postid)
+
+            if not parent_result.get("success"):
+                raise GraphQLError(f"Parent post {parent_postid} not found.")
+            if not child_result.get("success"):
+                raise GraphQLError(f"Child post {child_postid} not found.")
+
+            parent_post = Post(**parent_result["post"])
+            child_post = Post(**child_result["post"])
+
+            n4j.add_reply(parent_post, child_post)
+
+            return child_post.convert_PostType()
+
+        except Exception as e:
+            print("Error in adding reply:", e)
+            return None
+        
 schema = strawberry.Schema(query=Query, mutation=Mutation)
