@@ -13,6 +13,20 @@ export default function HomeScreen() {
   const GRAPHQL_URL = `${API_BASE_URL}/graphql`;
   const client = new GraphQLClient(GRAPHQL_URL);
   const [backendPosts, setBackendPosts] = useState<any[]>([]);
+
+  const GET_REPLIES_QUERY = gql`
+    query GetReplies($postid: String!, $k: Int) {
+      getReplies(postid: $postid, k: $k) {
+        postid
+        content
+        authorid
+        date
+        edited
+        num_likes
+        promptid
+      }
+    }
+  `;
   const [usernameMap, setUsernameMap] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
@@ -32,9 +46,17 @@ export default function HomeScreen() {
           }
         `;
 
-        const { allPosts } = await client.request(query);
-        setBackendPosts(allPosts);
-        console.log("Fetched posts:", allPosts);
+        const allPostsResponse  = await client.request(query);
+        const allPosts = allPostsResponse.allPosts;
+        const postsWithReplies = await Promise.all(
+          allPosts.map(async (post: any) => {
+            const repliesResponse = await client.request(GET_REPLIES_QUERY, { postid: post.postid, k: 10 });
+            const replies = repliesResponse.getReplies || [];
+            return { ...post, replies};
+          })
+        );
+        setBackendPosts(postsWithReplies);
+        console.log("Fetched posts:", postsWithReplies);
 
         // Fetch usernames for all unique authorids
         const authorIds = allPosts.map((post: any) => post.authorid).filter((id: any): id is string => typeof id === 'string');
@@ -169,6 +191,18 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Display backend replies */}
+      {item.replies && item.replies.length > 0 && (
+        <View style={styles.repliesContainer}>
+          {item.replies.map((r: any) => (
+            <View key={r.postid} style={styles.replyItem}>
+              <Text style={styles.replyUsername}>@{r.authorid}</Text>
+              <Text style={styles.replyTextDisplay}>{r.content}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+
       {/* Display existing replies */}
       {replies[item.id] && replies[item.id].length > 0 && (
         <View style={styles.repliesContainer}>
@@ -258,8 +292,8 @@ export default function HomeScreen() {
                 id: post.postid,
                 username: usernameMap[post.authorid] || post.authorid,
                 reply: post.content,
-                likes: post.numlikes
-              })
+                replies: post.replies
+                likes: post.numlikes              })
             )}
           </View>
         </View>
