@@ -1,33 +1,32 @@
-import React, { useState, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, SafeAreaView, ScrollView, Image, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
 import { createThemedStyles } from '../../styles/themedStyles';
 
+const RECENT_FOLLOWERS = [
+  { id: '1', username: 'sarah_m', name: 'Sarah Miller', avatar: 'https://i.pravatar.cc/150?img=1', isFollowing: false },
+  { id: '2', username: 'mike_j', name: 'Mike Johnson', avatar: 'https://i.pravatar.cc/150?img=2', isFollowing: true },
+  { id: '3', username: 'emma_w', name: 'Emma Wilson', avatar: 'https://i.pravatar.cc/150?img=3', isFollowing: false },
+];
+
+const SUGGESTIONS = [
+  { id: '4', username: 'alex_k', name: 'Alex Kumar', avatar: 'https://i.pravatar.cc/150?img=4', mutualFriends: 3 },
+  { id: '5', username: 'lisa_p', name: 'Lisa Park', avatar: 'https://i.pravatar.cc/150?img=5', mutualFriends: 5 },
+  { id: '6', username: 'james_r', name: 'James Rodriguez', avatar: 'https://i.pravatar.cc/150?img=6', mutualFriends: 2 },
+];
+
+const PEOPLE_YOU_MAY_KNOW = [
+  { id: '7', username: 'olivia_t', name: 'Olivia Taylor', avatar: 'https://i.pravatar.cc/150?img=7', mutualFriends: 8 },
+  { id: '8', username: 'daniel_l', name: 'Daniel Lee', avatar: 'https://i.pravatar.cc/150?img=8', mutualFriends: 4 },
+  { id: '9', username: 'sophia_c', name: 'Sophia Chen', avatar: 'https://i.pravatar.cc/150?img=9', mutualFriends: 6 },
+  { id: '10', username: 'noah_b', name: 'Noah Brown', avatar: 'https://i.pravatar.cc/150?img=10', mutualFriends: 1 },
+];
+
 export default function FriendsScreen() {
   const { styles: themeStyles } = useTheme();
   const styles = useMemo(() => createThemedStyles(themeStyles), [themeStyles]);
   const [searchQuery, setSearchQuery] = useState('');
-
-  // Mock data - replace with real data from backend
-  const recentFollowers = [
-    { id: '1', username: 'sarah_m', name: 'Sarah Miller', avatar: 'https://i.pravatar.cc/150?img=1', isFollowing: false },
-    { id: '2', username: 'mike_j', name: 'Mike Johnson', avatar: 'https://i.pravatar.cc/150?img=2', isFollowing: true },
-    { id: '3', username: 'emma_w', name: 'Emma Wilson', avatar: 'https://i.pravatar.cc/150?img=3', isFollowing: false },
-  ];
-
-  const suggestions = [
-    { id: '4', username: 'alex_k', name: 'Alex Kumar', avatar: 'https://i.pravatar.cc/150?img=4', mutualFriends: 3 },
-    { id: '5', username: 'lisa_p', name: 'Lisa Park', avatar: 'https://i.pravatar.cc/150?img=5', mutualFriends: 5 },
-    { id: '6', username: 'james_r', name: 'James Rodriguez', avatar: 'https://i.pravatar.cc/150?img=6', mutualFriends: 2 },
-  ];
-
-  const peopleYouMayKnow = [
-    { id: '7', username: 'olivia_t', name: 'Olivia Taylor', avatar: 'https://i.pravatar.cc/150?img=7', mutualFriends: 8 },
-    { id: '8', username: 'daniel_l', name: 'Daniel Lee', avatar: 'https://i.pravatar.cc/150?img=8', mutualFriends: 4 },
-    { id: '9', username: 'sophia_c', name: 'Sophia Chen', avatar: 'https://i.pravatar.cc/150?img=9', mutualFriends: 6 },
-    { id: '10', username: 'noah_b', name: 'Noah Brown', avatar: 'https://i.pravatar.cc/150?img=10', mutualFriends: 1 },
-  ];
 
   const handleFollow = (userId: string) => {
     console.log('Follow user:', userId);
@@ -40,7 +39,7 @@ export default function FriendsScreen() {
   };
 
   // Filter users based on search query
-  const filterUsers = (users: any[]) => {
+  const filterUsers = useCallback((users: { name: string; username: string }[]) => {
     if (!searchQuery.trim()) return users;
 
     const query = searchQuery.toLowerCase();
@@ -48,11 +47,11 @@ export default function FriendsScreen() {
       user.name.toLowerCase().includes(query) ||
       user.username.toLowerCase().includes(query)
     );
-  };
+  }, [searchQuery]);
 
-  const filteredRecentFollowers = useMemo(() => filterUsers(recentFollowers), [searchQuery]);
-  const filteredSuggestions = useMemo(() => filterUsers(suggestions), [searchQuery]);
-  const filteredPeopleYouMayKnow = useMemo(() => filterUsers(peopleYouMayKnow), [searchQuery]);
+  const filteredRecentFollowers = useMemo(() => filterUsers(RECENT_FOLLOWERS), [filterUsers]);
+  const filteredSuggestions = useMemo(() => filterUsers(SUGGESTIONS), [filterUsers]);
+  const filteredPeopleYouMayKnow = useMemo(() => filterUsers(PEOPLE_YOU_MAY_KNOW), [filterUsers]);
 
   return (
     <SafeAreaView style={styles.safeArea}>

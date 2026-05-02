@@ -21,6 +21,7 @@ pip-delete-this-directory.txt
 .Spotlight-V100/
 
 # IDE-specific ignores (example for VS Code and PyCharm)
+.expo/
 .vscode/
 .idea/
 *.iml
