@@ -4,7 +4,7 @@ PromptParty is a full-stack prompt-sharing platform built with a React Native mo
 
 ## 🎯 Project Overview
 
-PromptParty enables users to explore prompts, connect with friends, and receive personalized recommendations. A live demo is available at https://prompt-party-three.vercel.app/Home. The platform is split into three core domains:
+PromptParty enables users to explore prompts, connect with friends, and receive personalized recommendations. A live demo is available at https://prompt-party-three.vercel.app. The platform is split into three core domains:
 
 - **Frontend**: Mobile app built in React Native with navigation, screens, and native iOS integration
 - **Backend**: Python server with GraphQL, REST endpoints, database access, and developer documentation
