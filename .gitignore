@@ -9,6 +9,8 @@ __pycache__/
 .pytest_cache/
 venv/
 env/
+.env
+*.env
 pip-log.txt
 pip-delete-this-directory.txt
 
@@ -26,3 +28,9 @@ pip-delete-this-directory.txt
 # Common build/distribution files
 build/
 dist/
+server/login.py
+<<<<<<< HEAD
+=======
+
+.env
+>>>>>>> backend

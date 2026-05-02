@@ -1,6 +1,7 @@
-// This is a shim for web and Android where the tab bar is generally opaque.
-export default undefined;
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 export function useBottomTabOverflow() {
-  return 0;
+  const tabBarHeight = useBottomTabBarHeight();
+  return tabBarHeight;
 }
+
